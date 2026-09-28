@@ -1,0 +1,1 @@
+{"note":"Post-incident context for every shortlisted vessel over the same window. It never changes the score or the verdict; only a new oil observation triggers a linked re-run.","vessels":[{"mmsi":991466392,"fixes":0,"window":["2025-03-29T00:41:38Z","2025-03-30T00:41:38Z"],"events":[]}]}

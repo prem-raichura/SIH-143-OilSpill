@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Build output and caches
+dist/
+dist-ssr/
+*.tsbuildinfo
+.vite/
+.cache/
+coverage/
+
+# Vercel
+.vercel/
+
+# Environment and secrets (none are needed; keep them out if added later)
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Local test artefacts
+*.local
+client/public/data/**/.DS_Store

@@ -1,0 +1,654 @@
+{
+ "source": "Zenodo Sentinel-1 SAR Oil Spill dataset, Part III (test), CC-BY 4.0, Trujillo-Acatitla et al. 2024, doi:10.5281/zenodo.13761290",
+ "display": "VV Sigma0 dB, per-tile 2-98 % stretch, 1024 px",
+ "items": [
+  {
+   "id": "oil_00042",
+   "class": "oil",
+   "source_file": "Images/Oil/00042.tif",
+   "oil_fraction": 0.1795,
+   "stretch_db": [
+    -28.74,
+    -7.72
+   ],
+   "bounds_wgs84": [
+    35.60034,
+    35.38401,
+    35.78431,
+    35.56798
+   ],
+   "image": "oil_00042.jpg",
+   "mask": "oil_00042_mask.png"
+  },
+  {
+   "id": "oil_00030",
+   "class": "oil",
+   "source_file": "Images/Oil/00030.tif",
+   "oil_fraction": 0.0761,
+   "stretch_db": [
+    -31.67,
+    -17.56
+   ],
+   "bounds_wgs84": [
+    9.10396,
+    43.17632,
+    9.28794,
+    43.3603
+   ],
+   "image": "oil_00030.jpg",
+   "mask": "oil_00030_mask.png"
+  },
+  {
+   "id": "oil_00011",
+   "class": "oil",
+   "source_file": "Images/Oil/00011.tif",
+   "oil_fraction": 0.0467,
+   "stretch_db": [
+    -27.53,
+    -15.42
+   ],
+   "bounds_wgs84": [
+    38.30345,
+    20.06958,
+    38.48743,
+    20.25356
+   ],
+   "image": "oil_00011.jpg",
+   "mask": "oil_00011_mask.png"
+  },
+  {
+   "id": "oil_00132",
+   "class": "oil",
+   "source_file": "Images/Oil/00132.tif",
+   "oil_fraction": 0.0198,
+   "stretch_db": [
+    -25.54,
+    -17.52
+   ],
+   "bounds_wgs84": [
+    54.89896,
+    25.6754,
+    55.08294,
+    25.85937
+   ],
+   "image": "oil_00132.jpg",
+   "mask": "oil_00132_mask.png"
+  },
+  {
+   "id": "oil_00066",
+   "class": "oil",
+   "source_file": "Images/Oil/00066.tif",
+   "oil_fraction": 0.0221,
+   "stretch_db": [
+    -27.75,
+    -17.75
+   ],
+   "bounds_wgs84": [
+    37.94898,
+    20.06958,
+    38.13295,
+    20.25356
+   ],
+   "image": "oil_00066.jpg",
+   "mask": "oil_00066_mask.png"
+  },
+  {
+   "id": "oil_00120",
+   "class": "oil",
+   "source_file": "Images/Oil/00120.tif",
+   "oil_fraction": 0.0579,
+   "stretch_db": [
+    -32.15,
+    -20.27
+   ],
+   "bounds_wgs84": [
+    -88.92153,
+    28.82188,
+    -88.73756,
+    29.00585
+   ],
+   "image": "oil_00120.jpg",
+   "mask": "oil_00120_mask.png"
+  },
+  {
+   "id": "oil_00010",
+   "class": "oil",
+   "source_file": "Images/Oil/00010.tif",
+   "oil_fraction": 0.1105,
+   "stretch_db": [
+    -25.9,
+    -13.29
+   ],
+   "bounds_wgs84": [
+    38.65563,
+    20.36104,
+    38.83961,
+    20.54501
+   ],
+   "image": "oil_00010.jpg",
+   "mask": "oil_00010_mask.png"
+  },
+  {
+   "id": "oil_00111",
+   "class": "oil",
+   "source_file": "Images/Oil/00111.tif",
+   "oil_fraction": 0.1861,
+   "stretch_db": [
+    -33.13,
+    -20.82
+   ],
+   "bounds_wgs84": [
+    -88.9225,
+    28.82187,
+    -88.73852,
+    29.00585
+   ],
+   "image": "oil_00111.jpg",
+   "mask": "oil_00111_mask.png"
+  },
+  {
+   "id": "oil_00100",
+   "class": "oil",
+   "source_file": "Images/Oil/00100.tif",
+   "oil_fraction": 0.0574,
+   "stretch_db": [
+    -31.53,
+    -19.77
+   ],
+   "bounds_wgs84": [
+    -88.73989,
+    28.82188,
+    -88.55592,
+    29.00585
+   ],
+   "image": "oil_00100.jpg",
+   "mask": "oil_00100_mask.png"
+  },
+  {
+   "id": "oil_00079",
+   "class": "oil",
+   "source_file": "Images/Oil/00079.tif",
+   "oil_fraction": 0.0929,
+   "stretch_db": [
+    -26.6,
+    -14.26
+   ],
+   "bounds_wgs84": [
+    38.47291,
+    20.90335,
+    38.65689,
+    21.08732
+   ],
+   "image": "oil_00079.jpg",
+   "mask": "oil_00079_mask.png"
+  },
+  {
+   "id": "oil_00133",
+   "class": "oil",
+   "source_file": "Images/Oil/00133.tif",
+   "oil_fraction": 0.2316,
+   "stretch_db": [
+    -33.08,
+    -20
+   ],
+   "bounds_wgs84": [
+    54.38512,
+    25.50083,
+    54.56909,
+    25.68481
+   ],
+   "image": "oil_00133.jpg",
+   "mask": "oil_00133_mask.png"
+  },
+  {
+   "id": "oil_00072",
+   "class": "oil",
+   "source_file": "Images/Oil/00072.tif",
+   "oil_fraction": 0.1132,
+   "stretch_db": [
+    -31.03,
+    -18.36
+   ],
+   "bounds_wgs84": [
+    -89.10459,
+    28.82141,
+    -88.92062,
+    29.00539
+   ],
+   "image": "oil_00072.jpg",
+   "mask": "oil_00072_mask.png"
+  },
+  {
+   "id": "lookalike_00110",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00110.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -25.48,
+    -8.09
+   ],
+   "bounds_wgs84": [
+    34.07017,
+    35.38525,
+    34.25414,
+    35.56922
+   ],
+   "image": "lookalike_00110.jpg",
+   "mask": "lookalike_00110_mask.png"
+  },
+  {
+   "id": "lookalike_00055",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00055.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -29.09,
+    -14.61
+   ],
+   "bounds_wgs84": [
+    -124.36597,
+    45.60681,
+    -124.182,
+    45.79079
+   ],
+   "image": "lookalike_00055.jpg",
+   "mask": "lookalike_00055_mask.png"
+  },
+  {
+   "id": "lookalike_00043",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00043.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -29.28,
+    -15.62
+   ],
+   "bounds_wgs84": [
+    -124.54869,
+    45.60681,
+    -124.36471,
+    45.79079
+   ],
+   "image": "lookalike_00043.jpg",
+   "mask": "lookalike_00043_mask.png"
+  },
+  {
+   "id": "lookalike_00054",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00054.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -28.77,
+    -14.63
+   ],
+   "bounds_wgs84": [
+    10.57567,
+    42.691,
+    10.75965,
+    42.87498
+   ],
+   "image": "lookalike_00054.jpg",
+   "mask": "lookalike_00054_mask.png"
+  },
+  {
+   "id": "lookalike_00065",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00065.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -28.46,
+    -15.47
+   ],
+   "bounds_wgs84": [
+    -124.18326,
+    45.77785,
+    -123.99928,
+    45.96183
+   ],
+   "image": "lookalike_00065.jpg",
+   "mask": "lookalike_00065_mask.png"
+  },
+  {
+   "id": "lookalike_00057",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00057.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -28.75,
+    -16.78
+   ],
+   "bounds_wgs84": [
+    10.57567,
+    42.17519,
+    10.75965,
+    42.35917
+   ],
+   "image": "lookalike_00057.jpg",
+   "mask": "lookalike_00057_mask.png"
+  },
+  {
+   "id": "lookalike_00040",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00040.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -28.49,
+    -8.26
+   ],
+   "bounds_wgs84": [
+    10.40023,
+    43.03479,
+    10.58421,
+    43.21876
+   ],
+   "image": "lookalike_00040.jpg",
+   "mask": "lookalike_00040_mask.png"
+  },
+  {
+   "id": "lookalike_00098",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00098.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -31.66,
+    -18.46
+   ],
+   "bounds_wgs84": [
+    22.70766,
+    59.60851,
+    22.89164,
+    59.79249
+   ],
+   "image": "lookalike_00098.jpg",
+   "mask": "lookalike_00098_mask.png"
+  },
+  {
+   "id": "lookalike_00130",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00130.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -27.97,
+    -14.2
+   ],
+   "bounds_wgs84": [
+    -125.02668,
+    45.44314,
+    -124.8427,
+    45.62711
+   ],
+   "image": "lookalike_00130.jpg",
+   "mask": "lookalike_00130_mask.png"
+  },
+  {
+   "id": "lookalike_00046",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00046.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -28.75,
+    -17.34
+   ],
+   "bounds_wgs84": [
+    10.40485,
+    42.15207,
+    10.58882,
+    42.33604
+   ],
+   "image": "lookalike_00046.jpg",
+   "mask": "lookalike_00046_mask.png"
+  },
+  {
+   "id": "lookalike_00053",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00053.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -33.75,
+    -20.87
+   ],
+   "bounds_wgs84": [
+    -4.11136,
+    45.85282,
+    -3.92739,
+    46.03679
+   ],
+   "image": "lookalike_00053.jpg",
+   "mask": "lookalike_00053_mask.png"
+  },
+  {
+   "id": "lookalike_00127",
+   "class": "lookalike",
+   "source_file": "Images/Lookalike/00127.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -31.14,
+    -19.17
+   ],
+   "bounds_wgs84": [
+    37.5945,
+    19.36961,
+    37.77847,
+    19.55359
+   ],
+   "image": "lookalike_00127.jpg",
+   "mask": "lookalike_00127_mask.png"
+  },
+  {
+   "id": "clean_00136",
+   "class": "clean",
+   "source_file": "Images/No oil/00136.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -22.42,
+    -17.29
+   ],
+   "bounds_wgs84": [
+    -88.74131,
+    28.30048,
+    -88.55734,
+    28.48445
+   ],
+   "image": "clean_00136.jpg",
+   "mask": "clean_00136_mask.png"
+  },
+  {
+   "id": "clean_00114",
+   "class": "clean",
+   "source_file": "Images/No oil/00114.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -19.18,
+    -14.03
+   ],
+   "bounds_wgs84": [
+    7.87651,
+    43.17632,
+    8.06048,
+    43.3603
+   ],
+   "image": "clean_00114.jpg",
+   "mask": "clean_00114_mask.png"
+  },
+  {
+   "id": "clean_00014",
+   "class": "clean",
+   "source_file": "Images/No oil/00014.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -18.73,
+    -13.56
+   ],
+   "bounds_wgs84": [
+    8.05186,
+    43.00438,
+    8.23583,
+    43.18836
+   ],
+   "image": "clean_00014.jpg",
+   "mask": "clean_00014_mask.png"
+  },
+  {
+   "id": "clean_00113",
+   "class": "clean",
+   "source_file": "Images/No oil/00113.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -19.58,
+    -14.35
+   ],
+   "bounds_wgs84": [
+    7.87651,
+    43.34826,
+    8.06048,
+    43.53223
+   ],
+   "image": "clean_00113.jpg",
+   "mask": "clean_00113_mask.png"
+  },
+  {
+   "id": "clean_00135",
+   "class": "clean",
+   "source_file": "Images/No oil/00135.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -22.78,
+    -17.52
+   ],
+   "bounds_wgs84": [
+    -88.74131,
+    28.47412,
+    -88.55734,
+    28.6581
+   ],
+   "image": "clean_00135.jpg",
+   "mask": "clean_00135_mask.png"
+  },
+  {
+   "id": "clean_00115",
+   "class": "clean",
+   "source_file": "Images/No oil/00115.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -18.46,
+    -13.17
+   ],
+   "bounds_wgs84": [
+    7.87651,
+    43.00438,
+    8.06048,
+    43.18836
+   ],
+   "image": "clean_00115.jpg",
+   "mask": "clean_00115_mask.png"
+  },
+  {
+   "id": "clean_00124",
+   "class": "clean",
+   "source_file": "Images/No oil/00124.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -17.79,
+    -12.46
+   ],
+   "bounds_wgs84": [
+    7.70124,
+    42.66033,
+    7.88522,
+    42.8443
+   ],
+   "image": "clean_00124.jpg",
+   "mask": "clean_00124_mask.png"
+  },
+  {
+   "id": "clean_00108",
+   "class": "clean",
+   "source_file": "Images/No oil/00108.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -20.14,
+    -14.75
+   ],
+   "bounds_wgs84": [
+    34.53386,
+    34.27974,
+    34.71783,
+    34.46371
+   ],
+   "image": "clean_00108.jpg",
+   "mask": "clean_00108_mask.png"
+  },
+  {
+   "id": "clean_00119",
+   "class": "clean",
+   "source_file": "Images/No oil/00119.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -19.44,
+    -14.04
+   ],
+   "bounds_wgs84": [
+    7.87651,
+    42.4883,
+    8.06048,
+    42.67228
+   ],
+   "image": "clean_00119.jpg",
+   "mask": "clean_00119_mask.png"
+  },
+  {
+   "id": "clean_00133",
+   "class": "clean",
+   "source_file": "Images/No oil/00133.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -16.01,
+    -10.61
+   ],
+   "bounds_wgs84": [
+    -90.56199,
+    28.64651,
+    -90.37802,
+    28.83049
+   ],
+   "image": "clean_00133.jpg",
+   "mask": "clean_00133_mask.png"
+  },
+  {
+   "id": "clean_00065",
+   "class": "clean",
+   "source_file": "Images/No oil/00065.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -19.7,
+    -14.28
+   ],
+   "bounds_wgs84": [
+    35.25138,
+    36.0746,
+    35.43536,
+    36.25858
+   ],
+   "image": "clean_00065.jpg",
+   "mask": "clean_00065_mask.png"
+  },
+  {
+   "id": "clean_00123",
+   "class": "clean",
+   "source_file": "Images/No oil/00123.tif",
+   "oil_fraction": 0,
+   "stretch_db": [
+    -19.95,
+    -14.52
+   ],
+   "bounds_wgs84": [
+    35.42602,
+    35.90195,
+    35.60999,
+    36.08592
+   ],
+   "image": "clean_00123.jpg",
+   "mask": "clean_00123_mask.png"
+  }
+ ]
+}

@@ -1,0 +1,102 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { ErrorNote, Loading, Segmented } from "../components/ui";
+import { fetchJson, useCasesIndex } from "../data/load";
+import { PLACE } from "../data/places";
+import type { Ledger, Monitoring, TrackFeature, FeatureCollection } from "../data/types";
+import { buildVessels, type Role } from "../lib/vessels";
+import { canSeeShips, useSession } from "../auth/session";
+
+interface Row {
+  key: string;
+  name: string;
+  mmsi: number;
+  synthetic: boolean;
+  checked: { caseId: string; role: Role }[];
+}
+
+export default function Vessels() {
+  const index = useCasesIndex();
+  const [rows, setRows] = useState<Row[] | null>(null);
+  const [tab, setTab] = useState<"real" | "synthetic">("synthetic");
+  const [open, setOpen] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!index.data) return;
+    let live = true;
+    Promise.all(
+      index.data.cases.map(async (c) => {
+        const [ledger, mon, tracks] = await Promise.all([
+          fetchJson<Ledger>(`${c.path}ledger.json`),
+          fetchJson<Monitoring>(`${c.path}monitoring.json`),
+          fetchJson<FeatureCollection>(`${c.path}ais_tracks.geojson`),
+        ]);
+        return { c, vs: buildVessels(ledger, tracks.features as unknown as TrackFeature[], mon) };
+      }),
+    ).then((all) => {
+      if (!live) return;
+      const m = new Map<string, Row>();
+      for (const { c, vs } of all) {
+        for (const v of vs) {
+          if (v.role === "background") continue; // out of scope or unscored: not counted as an investigation
+          const key = `${v.mmsi}`;
+          const r = m.get(key) ?? { key, name: v.name, mmsi: v.mmsi, synthetic: v.synthetic, checked: [] };
+          r.checked.push({ caseId: c.id, role: v.role });
+          m.set(key, r);
+        }
+      }
+      setRows([...m.values()].sort((a, b) => b.checked.length - a.checked.length || a.name.localeCompare(b.name)));
+    });
+    return () => {
+      live = false;
+    };
+  }, [index.data]);
+
+  const role = useSession((s) => s.session?.role);
+  const list = useMemo(() => (rows ?? []).filter((r) => (tab === "real" ? !r.synthetic : r.synthetic)), [rows, tab]);
+  if (!canSeeShips(role)) return <div className="page-pad">Vessel history is for investigators and supervisors. Analysts review oil only, so reviews stay free of ship bias.</div>;
+  if (index.error) return <div className="page-pad"><ErrorNote error={index.error} /></div>;
+  if (!rows) return <div className="page-pad"><Loading /></div>;
+  const count = (r: Row, role: Role) => r.checked.filter((x) => x.role === role).length;
+
+  return (
+    <div className="page-pad reading">
+      <header className="page-head"><h1 className="t-page">Vessel history</h1></header>
+      <p className="note note-strong" style={{ maxWidth: "70ch" }}>
+        Historical association does not affect current attribution. Counts are always shown against the number of investigations a ship was
+        checked in; busy ships appear more often simply because they are nearby more often. No risk score is calculated.
+      </p>
+      <div className="bench-controls">
+        <Segmented label="Data" value={tab} onChange={setTab} options={[{ value: "synthetic", label: "Synthetic ships" }, { value: "real", label: "Real ships (US AIS)" }]} />
+        <span className="t-label">Real and synthetic records are never mixed. Demo data only; a real deployment restricts this page to authorised users.</span>
+      </div>
+      <div className="table-wrap">
+        <table className="table">
+          <thead>
+            <tr><th>Ship</th><th>MMSI</th><th className="r">Checked in</th><th className="r">Leading</th><th className="r">Plausible</th><th className="r">Not supported</th><th className="r">Eliminated</th><th>Cases</th></tr>
+          </thead>
+          <tbody>
+            {list.map((r) => (
+              <tr key={r.key} onClick={() => setOpen(open === r.key ? null : r.key)} style={{ cursor: "pointer" }}>
+                <td><b>{r.name}</b></td>
+                <td className="num">{r.mmsi}</td>
+                <td className="r">{r.checked.length}</td>
+                <td className="r">{count(r, "leading") ? `${count(r, "leading")} of ${r.checked.length}` : "0"}</td>
+                <td className="r">{count(r, "shortlist")}</td>
+                <td className="r">{count(r, "screened")}</td>
+                <td className="r">{count(r, "eliminated")}</td>
+                <td>
+                  {r.checked.map((x) => (
+                    <Link key={x.caseId} to={`/app/case/${x.caseId}?step=verdict`} className="chip" style={{ marginRight: 4, textDecoration: "none" }} title={PLACE[x.caseId]}>
+                      {x.caseId}
+                    </Link>
+                  ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
