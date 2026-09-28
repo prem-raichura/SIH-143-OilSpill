@@ -6,6 +6,7 @@ import "./design/base.css";
 import "./design/app.css";
 import "./design/landing.css";
 import "./design/console.css";
+import "./design/gis.css";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { startClock } from "./store/clock";

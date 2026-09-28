@@ -1,6 +1,7 @@
+import { Ship } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ErrorNote, Loading, Segmented } from "../components/ui";
+import { ErrorNote, Loading, PageHeader, Tabs } from "../components/ui";
 import { fetchJson, useCasesIndex } from "../data/load";
 import { PLACE } from "../data/places";
 import type { Ledger, Monitoring, TrackFeature, FeatureCollection } from "../data/types";
@@ -61,13 +62,13 @@ export default function Vessels() {
 
   return (
     <div className="page-pad reading">
-      <header className="page-head"><h1 className="t-page">Vessel history</h1></header>
+      <PageHeader icon={<Ship size={22} strokeWidth={1.8} />} title="Vessel history" description="Ships checked across all investigations, and how each check ended." />
       <p className="note note-strong" style={{ maxWidth: "70ch" }}>
         Historical association does not affect current attribution. Counts are always shown against the number of investigations a ship was
         checked in; busy ships appear more often simply because they are nearby more often. No risk score is calculated.
       </p>
       <div className="bench-controls">
-        <Segmented label="Data" value={tab} onChange={setTab} options={[{ value: "synthetic", label: "Synthetic ships" }, { value: "real", label: "Real ships (US AIS)" }]} />
+        <Tabs label="Data" variant="pill" value={tab} onChange={setTab} options={[{ value: "synthetic", label: "Synthetic ships" }, { value: "real", label: "Real ships (US AIS)" }]} />
         <span className="t-label">Real and synthetic records are never mixed. Demo data only; a real deployment restricts this page to authorised users.</span>
       </div>
       <div className="table-wrap">

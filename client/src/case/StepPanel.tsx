@@ -24,8 +24,13 @@ export function stepAllowed(step: Step, c: CaseDerived): { ok: boolean; why?: st
 }
 
 export function PanelHead({ title, children }: { title: ReactNode; children?: ReactNode }) {
+  const c = useCase();
+  const step = useWorkspace((s) => s.step);
+  const visible = STEPS.filter((s) => !stepAllowed(s.id, c).hidden);
+  const i = visible.findIndex((s) => s.id === step);
   return (
     <header className="panel-title">
+      {i >= 0 && <span className="panel-kicker num">Step {i + 1} of {visible.length}</span>}
       <h2 className="t-panel">{title}</h2>
       {children && <p>{children}</p>}
     </header>

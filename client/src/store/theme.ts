@@ -5,9 +5,9 @@ const KEY = "oilspill.theme";
 
 function initial(): ThemeName {
   try {
-    return localStorage.getItem(KEY) === "day" ? "day" : "night";
+    return localStorage.getItem(KEY) === "night" ? "night" : "day";
   } catch {
-    return "night";
+    return "day";
   }
 }
 

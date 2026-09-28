@@ -162,3 +162,43 @@ export function reachEllipse(f1: LonLat, f2: LonLat, hours: number, kn = 25, ste
   }
   return ring;
 }
+
+/**
+ * Parse a typed position into [lon, lat]. Latitude comes first, as people say it:
+ * "18.95, 72.83", "18°57′N 72°50′E", "18 57.0 N 72 49.8 E", "-12.5 -45.2". Returns null when it cannot be read.
+ */
+export function parseLatLon(text: string): LonLat | null {
+  const t = text.trim().toUpperCase().replace(/[°º′'″"]/g, " ").replace(/,/g, " ");
+  if (!t) return null;
+  // Split at hemisphere letters when present: "18 57 N 72 50 E"
+  const hemi = t.match(/^(.*?)([NS])\s*(.*?)([EW])$/);
+  let latParts: number[];
+  let lonParts: number[];
+  let latSign = 1;
+  let lonSign = 1;
+  const nums = (s: string) => s.trim().split(/\s+/).filter(Boolean).map(Number);
+  if (hemi) {
+    latParts = nums(hemi[1]);
+    lonParts = nums(hemi[3]);
+    latSign = hemi[2] === "S" ? -1 : 1;
+    lonSign = hemi[4] === "W" ? -1 : 1;
+  } else {
+    if (/[A-Z]/.test(t)) return null;
+    const all = nums(t);
+    if (all.length === 2) [latParts, lonParts] = [[all[0]], [all[1]]];
+    else if (all.length === 4) [latParts, lonParts] = [all.slice(0, 2), all.slice(2)];
+    else if (all.length === 6) [latParts, lonParts] = [all.slice(0, 3), all.slice(3)];
+    else return null;
+  }
+  const toDeg = (p: number[]) => {
+    if (!p.length || p.length > 3 || p.some((x) => !isFinite(x))) return NaN;
+    const [d, m = 0, s = 0] = p;
+    if (m < 0 || m >= 60 || s < 0 || s >= 60) return NaN;
+    const sign = d < 0 || Object.is(d, -0) ? -1 : 1;
+    return sign * (Math.abs(d) + m / 60 + s / 3600);
+  };
+  const lat = latSign * toDeg(latParts);
+  const lon = lonSign * toDeg(lonParts);
+  if (!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  return [lon, lat];
+}

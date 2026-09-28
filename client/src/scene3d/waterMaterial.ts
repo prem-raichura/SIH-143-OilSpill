@@ -123,26 +123,30 @@ void main() {
 `;
 
 export function createWaterMaterial(oil: THREE.Texture, oilBox: THREE.Vector4) {
+  // Fixed daytime sun (matches SUN_DIR in OceanScene): about 35° up, from the south-east.
+  const alt = (35 * Math.PI) / 180;
+  const az = (135 * Math.PI) / 180;
+  const sunDir = new THREE.Vector3(Math.sin(az) * Math.cos(alt), Math.sin(alt), -Math.cos(az) * Math.cos(alt)).normalize();
   return new THREE.ShaderMaterial({
     vertexShader: vertex,
     fragmentShader: fragment,
     uniforms: {
       uTime: { value: 0 },
-      uSunDir: { value: new THREE.Vector3(0, 1, 0) },
-      uSunColor: { value: new THREE.Color("#fff4e0") },
-      uSunStrength: { value: 1 },
-      uDeep: { value: new THREE.Color("#0a2a3a") },
-      uScatter: { value: new THREE.Color("#1d6a6f") },
-      uSkyZenith: { value: new THREE.Color("#3b6ea8") },
-      uSkyHorizon: { value: new THREE.Color("#b9cfdf") },
+      uSunDir: { value: sunDir },
+      uSunColor: { value: new THREE.Color("#FFF3DC") },
+      uSunStrength: { value: 1.4 },
+      uDeep: { value: new THREE.Color("#0E5A86") },
+      uScatter: { value: new THREE.Color("#2BB3B1") },
+      uSkyZenith: { value: new THREE.Color("#3F7FD0") },
+      uSkyHorizon: { value: new THREE.Color("#CFE4F5") },
       uWindDir: { value: new THREE.Vector2(1, 0) },
       uWindSpeed: { value: 6 },
       uOil: { value: oil },
       uOilBox: { value: oilBox },
       uSar: { value: 0 },
       uSarWind: { value: 6 },
-      uFogColor: { value: new THREE.Color("#b9cfdf") },
-      uFogDensity: { value: 0.000012 },
+      uFogColor: { value: new THREE.Color("#CFE4F5") },
+      uFogDensity: { value: 0.0000055 },
     },
   });
 }

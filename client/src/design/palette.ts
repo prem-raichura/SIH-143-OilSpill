@@ -16,6 +16,8 @@ export interface Palette {
   shipElim: string;
   shipBg: string;
   focus: string;
+  accent: string;
+  teal: string;
 }
 
 export const PALETTES: Record<ThemeName, Palette> = {
@@ -24,7 +26,7 @@ export const PALETTES: Record<ThemeName, Palette> = {
     land: "#2B2C24",
     coast: "#4E5446",
     ink: "#E8EFF2",
-    ink2: "#93A9B5",
+    ink2: "#9BB0BC",
     grid: "#1B384B",
     past: "#D55181",
     future: "#C98500",
@@ -34,22 +36,26 @@ export const PALETTES: Record<ThemeName, Palette> = {
     shipElim: "#6F818C",
     shipBg: "#34505F",
     focus: "#FFD84D",
+    accent: "#3B9AF5",
+    teal: "#2BC4B0",
   },
   day: {
-    sea: "#EEF4F7",
-    land: "#EFE4C4",
-    coast: "#B9A97A",
-    ink: "#10222D",
-    ink2: "#587381",
-    grid: "#D6E2E8",
+    sea: "#D9E9F4",
+    land: "#EFEBE0",
+    coast: "#B7AE92",
+    ink: "#0F2233",
+    ink2: "#4F6475",
+    grid: "#C6DBEA",
     past: "#C2407E",
     future: "#B86E00",
     shipLead: "#184F95",
     shipShort: "#2A78D6",
     shipScreen: "#86B6EF",
     shipElim: "#8A9AA3",
-    shipBg: "#C3CFD5",
-    focus: "#FFD84D",
+    shipBg: "#BCCAD3",
+    focus: "#FFC928",
+    accent: "#0B5FA5",
+    teal: "#0E9F8E",
   },
 };
 

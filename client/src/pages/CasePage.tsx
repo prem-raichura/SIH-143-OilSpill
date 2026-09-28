@@ -1,4 +1,4 @@
-import { ChevronLeft, FileText, Lock } from "lucide-react";
+import { Box, Check, ChevronLeft, Clock3, FileText, Lock, Map as MapIcon } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import CaseMap from "../case/CaseMap";
@@ -6,7 +6,7 @@ import LayerRail from "../case/LayerRail";
 import StepPanel, { stepAllowed } from "../case/StepPanel";
 import TimelineDock from "../case/TimelineDock";
 import { CaseCtx, useCaseDerived } from "../case/useCase";
-import { ErrorNote, Loading, ProvenanceBadges, Segmented, Tip, VerdictChip } from "../components/ui";
+import { ErrorNote, Loading, ProvenanceBadges, Tabs, Tip, VerdictChip } from "../components/ui";
 import { useCaseBundle } from "../data/load";
 import { PLACE } from "../data/places";
 import { fmtUtc } from "../lib/time";
@@ -15,6 +15,8 @@ import { useReview } from "../store/review";
 import { STEPS, useWorkspace, type Step, type View } from "../store/workspace";
 
 const OceanScene = lazy(() => import("../scene3d/OceanScene"));
+/** Steps grouped into the three phases of an investigation (shown as labels in the stepper). */
+const PHASE: Partial<Record<Step, string>> = { image: "Detect", drift: "Trace", ships: "Attribute" };
 const SpaceTimeCube = lazy(() => import("../cube/SpaceTimeCube"));
 
 export default function CasePage() {
@@ -68,7 +70,7 @@ export default function CasePage() {
         <header className="ws-head">
           <Link to="/app/cases" className="back"><ChevronLeft size={15} /> Cases</Link>
           <div className="ws-title">
-            <span className="id">{entry.id}</span>
+            <span className="id num">{entry.id}</span>
             <span className="place">{PLACE[entry.id]}</span>
             <span className="when">{fmtUtc(entry.t_image)}</span>
           </div>
@@ -81,51 +83,60 @@ export default function CasePage() {
             ) : (
               <span className="t-label">Verdict after the oil check</span>
             )}
-            {!c.analyst && <Link className="btn btn-secondary" to={`/app/case/${entry.id}/report`}><FileText size={14} /> Report</Link>}
+            {!c.analyst && <Link className="btn btn-accent-outline" to={`/app/case/${entry.id}/report`}><FileText size={14} /> Report</Link>}
           </div>
         </header>
         <nav className="stepper" aria-label="Investigation steps">
-          {STEPS.filter((s) => !stepAllowed(s.id, c).hidden).map((s, i) => {
-            const allowed = stepAllowed(s.id, c);
-            const cur = ws.step === s.id;
-            const idx = STEPS.findIndex((x) => x.id === ws.step);
-            const btn = (
-              <button key={s.id} type="button" className={`step-btn${i < idx ? " done" : ""}`} aria-current={cur ? "step" : undefined}
-                disabled={!allowed.ok} onClick={() => ws.setStep(s.id)}>
-                <span className="n">{i + 1}</span>
-                <span className="lbl">{s.label}</span>
-                {!allowed.ok && <Lock size={12} aria-label="Locked" />}
-              </button>
-            );
-            return (
-              <span key={s.id} style={{ display: "contents" }}>
-                {i > 0 && <span className="step-sep" aria-hidden="true" />}
-                {allowed.ok ? btn : <Tip content={allowed.why}>{<span style={{ display: "inline-flex" }}>{btn}</span>}</Tip>}
-              </span>
-            );
-          })}
+          {(() => {
+            const visible = STEPS.filter((s) => !stepAllowed(s.id, c).hidden);
+            const idx = visible.findIndex((x) => x.id === ws.step);
+            return visible.map((s, i) => {
+              const allowed = stepAllowed(s.id, c);
+              const cur = ws.step === s.id;
+              const done = i < idx;
+              const btn = (
+                <button key={s.id} type="button" className={`step-btn${done ? " done" : ""}${!allowed.ok ? " locked" : ""}`} aria-current={cur ? "step" : undefined}
+                  disabled={!allowed.ok} onClick={() => ws.setStep(s.id)}>
+                  <span className="n" aria-hidden={done ? true : undefined}>{done ? <Check size={12} strokeWidth={3} /> : !allowed.ok ? <Lock size={11} aria-label="Locked" /> : i + 1}</span>
+                  <span className="lbl">{s.label}</span>
+                </button>
+              );
+              return (
+                <span key={s.id} className="step-item">
+                  {PHASE[s.id] && <span className={`step-phase${i > 0 ? " sep" : ""}`}>{PHASE[s.id]}</span>}
+                  {i > 0 && !PHASE[s.id] && <span className={`step-sep${done || cur ? " on" : ""}`} aria-hidden="true" />}
+                  {allowed.ok ? btn : <Tip content={allowed.why}>{<span style={{ display: "inline-flex" }}>{btn}</span>}</Tip>}
+                </span>
+              );
+            });
+          })()}
         </nav>
         <div className={`ws-body${ws.railOpen ? "" : " rail-closed"}`}>
           <LayerRail />
           <section className="ws-center" id="case-map" aria-label="Map and 3D views">
-            <div className="view-switch">
-              <Segmented<View>
+            <div className="view-tabs">
+              <Tabs<View>
                 label="View"
                 value={ws.view}
                 onChange={ws.setView}
                 options={[
-                  { value: "map", label: "Map" },
-                  { value: "scene", label: "3D scene" },
-                  { value: "cube", label: "Space-time" },
+                  { value: "map", label: "Map", icon: <MapIcon size={15} strokeWidth={1.8} /> },
+                  { value: "scene", label: "3D scene", icon: <Box size={15} strokeWidth={1.8} /> },
+                  { value: "cube", label: "Space-time cube", icon: <Clock3 size={15} strokeWidth={1.8} /> },
                 ]}
               />
+              <span className="view-tabs-hint t-label">
+                {ws.view === "map" ? "GIS map: layers on the left, click any feature for details" : ws.view === "scene" ? "Illustration built from the case data, not evidence" : "Time runs upward: the image sits on top"}
+              </span>
             </div>
-            {ws.view === "map" && <CaseMap />}
-            {ws.view !== "map" && (
-              <Suspense fallback={<div className="page-pad"><Loading lines={3} /></div>}>
-                {ws.view === "scene" ? <OceanScene /> : <SpaceTimeCube />}
-              </Suspense>
-            )}
+            <div className="view-body">
+              {ws.view === "map" && <CaseMap />}
+              {ws.view !== "map" && (
+                <Suspense fallback={<div className="page-pad"><Loading lines={3} /></div>}>
+                  {ws.view === "scene" ? <OceanScene /> : <SpaceTimeCube />}
+                </Suspense>
+              )}
+            </div>
           </section>
           <StepPanel />
         </div>

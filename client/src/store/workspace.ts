@@ -22,7 +22,7 @@ export type LayerId =
   | "fwdParticles" | "fwdRoute" | "cone"
   | "tracks" | "tracksElim" | "tracksBg" | "heads" | "gaps" | "reach" | "release" | "driftCorrected"
   | "currents" | "wind"
-  | "eez" | "graticule" | "ports" | "platforms" | "online";
+  | "eez" | "graticule" | "ports" | "platforms";
 
 export interface LayerDef {
   id: LayerId;
@@ -30,7 +30,7 @@ export interface LayerDef {
   group: "Image" | "Oil" | "Where it came from" | "Where it goes" | "Ships" | "Ocean and wind" | "Reference";
   swatch: "sar" | "targets" | "slick" | "measure" | "past-dot" | "past-line" | "past-iso" | "past-hatch" | "past-dash"
     | "future-dot" | "future-line" | "future-cone" | "ship-line" | "ship-elim" | "ship-bg" | "ship-head" | "gap" | "reach"
-    | "release" | "drifted" | "current" | "wind" | "eez" | "grid" | "port" | "platform" | "online";
+    | "release" | "drifted" | "current" | "wind" | "eez" | "grid" | "port" | "platform";
   ships?: boolean; // hidden until the oil check is answered
 }
 
@@ -61,7 +61,6 @@ export const LAYERS: LayerDef[] = [
   { id: "graticule", label: "Graticule", group: "Reference", swatch: "grid" },
   { id: "ports", label: "Ports", group: "Reference", swatch: "port" },
   { id: "platforms", label: "Offshore platforms", group: "Reference", swatch: "platform" },
-  { id: "online", label: "Online ocean basemap (needs internet)", group: "Reference", swatch: "online" },
 ];
 
 type LayerSet = Partial<Record<LayerId, boolean>>;
@@ -89,7 +88,7 @@ export const PRESETS: Record<Step, LayerSet> = {
 
 export const SAR_OPACITY: Partial<Record<Step, number>> = { slick: 0.55 };
 
-interface WorkspaceState {
+export interface WorkspaceState {
   caseId: string | null;
   step: Step;
   view: View;

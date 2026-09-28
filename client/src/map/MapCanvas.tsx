@@ -8,6 +8,8 @@ export interface MapHandle {
   snapshot: () => string | null;
   zoomBy: (d: number) => void;
   resetNorth: () => void;
+  /** Animate to a point; keeps the current zoom unless one is given. */
+  flyTo: (lon: number, lat: number, zoom?: number) => void;
 }
 
 export interface MapCanvasProps {
@@ -127,6 +129,10 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
     },
     zoomBy: (d) => animateTo({ zoom: clampZoom(viewRef.current.zoom + d) }, 250),
     resetNorth: () => animateTo({ bearing: 0, pitch }, 300),
+    flyTo: (longitude, latitude, zoom) => {
+      interacted.current = true;
+      animateTo({ longitude, latitude, ...(zoom != null ? { zoom: clampZoom(zoom) } : {}) }, 600);
+    },
   }));
 
   const onViewStateChange = useCallback(({ viewState: vs, interactionState }: { viewState: MapViewState; interactionState?: Record<string, boolean> }) => {

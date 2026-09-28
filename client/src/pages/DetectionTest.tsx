@@ -1,7 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { CheckCircle2, HelpCircle, X, XCircle } from "lucide-react";
+import { CheckCircle2, HelpCircle, ScanSearch, X, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
-import { ErrorNote, Loading, Segmented } from "../components/ui";
+import { ErrorNote, Loading, PageHeader, Tabs } from "../components/ui";
 import { dataUrl, useGallery } from "../data/load";
 import type { GalleryItem } from "../data/types";
 import { useReview, type HumanLabel } from "../store/review";
@@ -39,15 +39,13 @@ export default function DetectionTest() {
 
   return (
     <div className="page-pad reading">
-      <header className="page-head">
-        <h1 className="t-page">Detection test</h1>
-      </header>
+      <PageHeader icon={<ScanSearch size={22} strokeWidth={1.8} />} title="Detection test" />
       <p className="muted" style={{ maxWidth: "68ch" }}>
         {data.items.length} tiles from the official test set of the problem-statement dataset ({data.source.split(",")[0]}): 12 with oil, 12 look-alikes and 12 clean sea.
         Judge each tile yourself, then compare with the dataset label. Every answer goes to the review log.
       </p>
       <div className="bench-controls">
-        <Segmented<Filter> label="Class" value={filter} onChange={setFilter} options={[
+        <Tabs<Filter> label="Class" variant="pill" value={filter} onChange={setFilter} options={[
           { value: "all", label: "All" }, { value: "oil", label: "Oil" }, { value: "lookalike", label: "Look-alike" }, { value: "clean", label: "Clean" },
         ]} />
         <label className="check-row"><span /><span>Show dataset masks</span><input type="checkbox" checked={showMask} onChange={(e) => setShowMask(e.target.checked)} /></label>

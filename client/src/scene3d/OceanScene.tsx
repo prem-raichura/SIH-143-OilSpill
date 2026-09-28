@@ -1,17 +1,19 @@
 // 3D ocean scene built from the case data: the slick and its drift on a wind-driven sea, ships on their
-// real AIS tracks, sun from the real time and place. An illustration, never evidence.
-import { OrbitControls, Sky, Stars } from "@react-three/drei";
+// real AIS tracks. Lit by a fixed daytime sun so the sea always reads in colour (the satellite passes are
+// at dawn, dusk or night, which rendered an almost black sea). An illustration, never evidence.
+import { OrbitControls, Sky } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
-import * as SunCalc from "suncalc";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useCase, type CaseDerived } from "../case/useCase";
 import { Segmented } from "../components/ui";
+import { PALETTES } from "../design/palette";
 import { PLACE } from "../data/places";
 import { windAt } from "../lib/forcing";
 import { particlesAt } from "../lib/oilroutes";
 import { fmtRel, fmtUtc, isoAt, parseUtc } from "../lib/time";
+import { useTheme } from "../store/theme";
 import { stateAt } from "../lib/tracks";
 import { hullKind, ROLE_LABEL, type Role, type Vessel } from "../lib/vessels";
 import { useClock } from "../store/clock";
@@ -23,8 +25,13 @@ import { createWaterMaterial } from "./waterMaterial";
 type Preset = "overview" | "satellite" | "follow" | "edge";
 const EXTENT = 140_000;
 const SAR_BG = new THREE.Color("#000000");
-const NIGHT_BG = new THREE.Color("#060d18"); // metres, oil mask and water detail box
-const ROLE_HEX: Record<Role, string> = { leading: "#86B6EF", shortlist: "#3987E5", screened: "#5a8fcf", eliminated: "#8a9aa3", background: "#8a9aa3" };
+/** Fixed late-morning sun: about 35° up, from the south-east. */
+const SUN_DIR = (() => {
+  const alt = (35 * Math.PI) / 180;
+  const az = (135 * Math.PI) / 180; // clockwise from north
+  return new THREE.Vector3(Math.sin(az) * Math.cos(alt), Math.sin(alt), -Math.cos(az) * Math.cos(alt)).normalize();
+})();
+const SKY_SUN = SUN_DIR.clone().multiplyScalar(100);
 
 interface SceneOpts {
   preset: Preset;
@@ -35,15 +42,6 @@ interface SceneOpts {
   labels: boolean;
   hypothesis: number | null;
   quality: "high" | "low";
-}
-
-function sunDirection(tIso: string, lonlat: [number, number]) {
-  const p = SunCalc.getPosition(new Date(parseUtc(tIso)), lonlat[1], lonlat[0]);
-  const azN = p.azimuth + Math.PI; // suncalc azimuth is from south, clockwise to west
-  const x = Math.sin(azN) * Math.cos(p.altitude);
-  const y = Math.sin(p.altitude);
-  const z = -Math.cos(azN) * Math.cos(p.altitude);
-  return { dir: new THREE.Vector3(x, y, z).normalize(), altitude: p.altitude };
 }
 
 function useSceneData(c: CaseDerived) {
@@ -121,9 +119,6 @@ function World({ opts, onFollowMissing, labelEls, onShips }: {
   const mask = useMemo(() => new OilMask(EXTENT), []);
   const water = useMemo(() => createWaterMaterial(mask.texture, mask.box()), [mask]);
   const lastPaint = useRef<{ h: number; hyp: number | null } | null>(null);
-  const sunRef = useRef<THREE.DirectionalLight>(null);
-  const [sun, setSun] = useState(() => sunDirection(c.bundle.meta.t_image, origin));
-  const tImage = c.bundle.meta.t_image;
 
   useEffect(() => () => { mask.dispose(); water.dispose(); }, [mask, water]);
 
@@ -214,14 +209,6 @@ function World({ opts, onFollowMissing, labelEls, onShips }: {
     const ctl = controls.current;
     water.uniforms.uTime.value = state.clock.elapsedTime;
 
-    // Sun, sky, light follow the scenario clock (sun changes slowly: recompute a few times per scenario hour)
-    const lastSunH = (state as unknown as { __sunH?: number }).__sunH;
-    if (lastSunH == null || Math.abs(lastSunH - h) > 0.1) {
-      (state as unknown as { __sunH?: number }).__sunH = h;
-      const s = sunDirection(isoAt(tImage, h), origin);
-      setSun(s);
-    }
-
     // Wind drives the waves
     const w = windAt(c.forcing, origin, h);
     const ws = Math.hypot(w[0], w[1]);
@@ -265,7 +252,6 @@ function World({ opts, onFollowMissing, labelEls, onShips }: {
     // Ships
     const camH = Math.max(50, camera.position.y);
     const exag = opts.trueScale ? 1 : THREE.MathUtils.clamp(camH / 600, 1, 28);
-    const night = sun.altitude < -0.05;
     let followed: ShipEntry | undefined;
     for (const s of ships) {
       const ti = c.trackIdx.get(s.v.mmsi)!;
@@ -285,7 +271,7 @@ function World({ opts, onFollowMissing, labelEls, onShips }: {
       g.position.set(x, 0, z);
       g.rotation.set(bob, -heading, Math.sin(state.clock.elapsedTime * 0.7 + s.v.mmsi * 0.3) * 0.02);
       g.scale.setScalar(exag);
-      s.model.navLights.visible = night && !opts.sar;
+      s.model.navLights.visible = false;
       // Wake behind the stern, length grows with speed
       const sog = st.sog ?? 10;
       const wakeLen = (s.model.length * 1.6 + sog * 32) * exag;
@@ -329,36 +315,16 @@ function World({ opts, onFollowMissing, labelEls, onShips }: {
       }
     }
 
-    // Sky colours for the water shader
-    const alt = sun.altitude;
-    const day = THREE.MathUtils.smoothstep(alt, -0.1, 0.25);
-    const dusk = THREE.MathUtils.smoothstep(alt, -0.12, 0.02) * (1 - THREE.MathUtils.smoothstep(alt, 0.05, 0.35));
-    const u = water.uniforms;
-    u.uSunDir.value.copy(sun.dir);
-    u.uSunStrength.value = Math.max(0, THREE.MathUtils.smoothstep(alt, -0.05, 0.2)) * 1.6;
-    (u.uSunColor.value as THREE.Color).setRGB(1, 0.78 + 0.2 * day, 0.55 + 0.4 * day);
-    (u.uSkyZenith.value as THREE.Color).setRGB(0.02 + 0.2 * day, 0.04 + 0.33 * day, 0.08 + 0.55 * day);
-    (u.uSkyHorizon.value as THREE.Color).setRGB(0.05 + 0.6 * day + 0.35 * dusk, 0.07 + 0.72 * day + 0.12 * dusk, 0.12 + 0.75 * day);
-    (u.uDeep.value as THREE.Color).setRGB(0.002 + 0.006 * day, 0.008 + 0.03 * day, 0.018 + 0.07 * day);
-    (u.uFogColor.value as THREE.Color).copy(u.uSkyHorizon.value as THREE.Color);
-    u.uFogDensity.value = opts.sar ? 0 : 0.0000062;
-    // The sky model turns white once the sun is well below the horizon: use a plain night sky instead.
-    scene.background = opts.sar ? SAR_BG : alt <= -0.04 ? NIGHT_BG : null;
-    if (sunRef.current) {
-      sunRef.current.position.copy(sun.dir).multiplyScalar(10000);
-      sunRef.current.intensity = 0.4 + 2.2 * day;
-    }
+    // Fixed daytime colours; only the radar look changes the background and fog.
+    water.uniforms.uFogDensity.value = opts.sar ? 0 : 0.0000055;
+    scene.background = opts.sar ? SAR_BG : null;
   });
 
-  const hemi = THREE.MathUtils.smoothstep(sun.altitude, -0.1, 0.25);
   return (
     <>
-      {!opts.sar && sun.altitude > -0.04 && (
-        <Sky distance={450000} sunPosition={sun.dir.clone().multiplyScalar(100)} turbidity={6} rayleigh={1.6} mieCoefficient={0.005} mieDirectionalG={0.85} />
-      )}
-      {!opts.sar && sun.altitude < 0 && <Stars radius={200000} depth={50000} count={3000} factor={4000} fade />}
-      <hemisphereLight args={["#bcd3e6", "#0b2230", 0.35 + 0.6 * hemi]} />
-      <directionalLight ref={sunRef} color="#fff2df" />
+      {!opts.sar && <Sky distance={450000} sunPosition={SKY_SUN} turbidity={4} rayleigh={1.2} mieCoefficient={0.004} mieDirectionalG={0.82} />}
+      <hemisphereLight args={["#CFE6FF", "#1B4A63", 0.9]} />
+      <directionalLight color="#FFF3DC" intensity={2.2} position={SUN_DIR.clone().multiplyScalar(10000)} />
       <mesh rotation-x={-Math.PI / 2} material={water} frustumCulled={false}>
         <planeGeometry args={[600_000, 600_000, 1, 1]} />
       </mesh>
@@ -385,6 +351,8 @@ export default function OceanScene() {
   const c = useCase();
   const ws = useWorkspace();
   const h = useClock((s) => s.h);
+  const P = PALETTES[useTheme((s) => s.theme)];
+  const roleHex: Record<Role, string> = { leading: P.shipLead, shortlist: P.shipShort, screened: P.shipScreen, eliminated: P.shipElim, background: P.shipElim };
   const lead = c.verdict.code === 3 ? c.verdict.lead?.mmsi ?? null : null;
   const selectedCand = ws.selectedMmsi && c.byMmsi.get(ws.selectedMmsi)?.candidate ? ws.selectedMmsi : null;
   const [opts, setOpts] = useState<SceneOpts>({
@@ -413,7 +381,7 @@ export default function OceanScene() {
         dpr={[1, 1.5]}
         onCreated={({ gl }) => {
           gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 0.9;
+          gl.toneMappingExposure = 1.0;
         }}
       >
         <World opts={opts} labelEls={labelEls} onShips={setSceneShips} onFollowMissing={() => set({ preset: "overview", presetKey: opts.presetKey + 1 })} />
@@ -429,7 +397,7 @@ export default function OceanScene() {
               else labelEls.current.delete(v.mmsi);
             }}
           >
-            <i style={{ background: ROLE_HEX[v.role] }} />
+            <i style={{ background: roleHex[v.role] }} />
             {v.name}
             <span>{v.mmsi === opts.hypothesis ? "hypothesis" : ROLE_LABEL[v.role].toLowerCase()}</span>
           </div>
@@ -465,7 +433,7 @@ export default function OceanScene() {
           </select>
         </label>
         <div className="scene-toggles">
-          <label><input type="checkbox" checked={opts.sar} onChange={(e) => set({ sar: e.target.checked, preset: e.target.checked ? "satellite" : opts.preset, presetKey: opts.presetKey + (e.target.checked ? 1 : 0) })} /> Radar look</label>
+          <label title="Grey-scale, the way the satellite radar sees the sea"><input type="checkbox" checked={opts.sar} onChange={(e) => set({ sar: e.target.checked, preset: e.target.checked ? "satellite" : opts.preset, presetKey: opts.presetKey + (e.target.checked ? 1 : 0) })} /> Radar look (satellite view)</label>
           <label><input type="checkbox" checked={opts.trueScale} onChange={(e) => set({ trueScale: e.target.checked })} /> True ship size</label>
           <label><input type="checkbox" checked={opts.labels} onChange={(e) => set({ labels: e.target.checked })} /> Labels</label>
           <label><input type="checkbox" checked={opts.quality === "low"} onChange={(e) => set({ quality: e.target.checked ? "low" : "high" })} /> Low quality</label>
@@ -489,7 +457,7 @@ export default function OceanScene() {
           No oil on the water yet: this is before {hyp?.candidate ? "the hypothesis release time" : "the oldest age in the prior"}. Move the timeline forward.
         </div>
       )}
-      <p className="scene-foot">3D view built from this case's data: slick outline, drift particles, ERA5 wind, AIS tracks, sun position. Ship models are generic by type{opts.trueScale ? "" : " and enlarged so they stay visible"}.</p>
+      <p className="scene-foot"><span>3D view built from this case's data: slick outline, drift particles, ERA5 wind, AIS tracks. Daylight lighting for readability. Ship models are generic by type{opts.trueScale ? "" : " and enlarged so they stay visible"}.</span></p>
     </div>
   );
 }

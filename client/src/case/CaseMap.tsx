@@ -8,25 +8,33 @@ import type { Bounds, LonLat } from "../data/types";
 import { PALETTES, rgba } from "../design/palette";
 import { driftCorrectTrack } from "../lib/drift";
 import { bearingDeg, distanceKm, fmtKmNm, fmtLonLat } from "../lib/geo";
-import { fmtSignedH } from "../lib/time";
-import { HULL_LABEL, hullKind, ROLE_LABEL } from "../lib/vessels";
+import BasemapSwitcher from "../map/BasemapSwitcher";
 import ChartFrame, { graticuleLines } from "../map/ChartFrame";
 import { buildCaseLayers, prepareStatic, withOpacity } from "../map/caseLayers";
-import { basemapLayers } from "../map/layers/basemap";
+import GoTo from "../map/GoTo";
+import IdentifyPanel, { type Identified } from "../map/IdentifyPanel";
+import { basemapDef, basemapLayers } from "../map/layers/basemap";
+import MapLegend, { type LegendGroup } from "../map/MapLegend";
 import { MapCanvas, type MapHandle } from "../map/MapCanvas";
+import OverviewMap from "../map/OverviewMap";
 import ScaleBar from "../map/ScaleBar";
+import { Swatch } from "../map/Swatch";
 import { useClock } from "../store/clock";
+import { useMapPrefs } from "../store/mapPrefs";
 import { useTheme } from "../store/theme";
-import { useWorkspace } from "../store/workspace";
+import { LAYERS, useWorkspace, type LayerId } from "../store/workspace";
 import { useReview } from "../store/review";
+import { describePick, type PickInfo } from "./describePick";
 import { useCase } from "./useCase";
 import { Tip } from "../components/ui";
 
 interface Hover {
   x: number;
   y: number;
-  content: React.ReactNode;
+  info: PickInfo;
 }
+
+const SHIP_LAYERS: LayerId[] = ["tracks", "tracksElim", "tracksBg", "heads", "gaps", "reach", "release", "driftCorrected"];
 
 export default function CaseMap() {
   const c = useCase();
@@ -34,11 +42,14 @@ export default function CaseMap() {
   const P = PALETTES[theme];
   const h = useClock((s) => s.h);
   const ws = useWorkspace();
+  const basemap = useMapPrefs((s) => s.basemap);
   const shared = useShared(c.bundle.meta.region);
   const [vp, setVp] = useState<WebMercatorViewport | null>(null);
   const [hover, setHover] = useState<Hover | null>(null);
   const [cursor, setCursor] = useState<LonLat | null>(null);
   const [measure, setMeasure] = useState<{ active: boolean; pts: LonLat[] }>({ active: false, pts: [] });
+  const [identified, setIdentified] = useState<(Identified & { fit?: PickInfo["fit"] }) | null>(null);
+  const [pin, setPin] = useState<LonLat | null>(null);
   const mapRef = useRef<MapHandle>(null);
 
   const allObs = useReview((s) => s.observations);
@@ -91,84 +102,32 @@ export default function CaseMap() {
       tilt: ws.tilt,
       observations,
     });
-  // The SAR image sits under the land so the coastline stays readable.
+  const base = basemapLayers({
+    land: shared.land,
+    eez: shared.eez,
+    graticule: ws.layers.graticule ? graticuleLines(vp) : [],
+    palette: P,
+    show: { eez: ws.layers.eez, graticule: ws.layers.graticule },
+    region: c.bundle.meta.region,
+    zoom: vp?.zoom ?? 6,
+    theme,
+    basemap,
+  });
+  // Web tiles, then the SAR image, then land (the coastline stays readable over the image), then the case data.
   const layers = withOpacity([
+    ...base.under,
     ...caseLayers.filter((l) => l.id === "sar"),
-    ...basemapLayers({
-      land: shared.land,
-      eez: shared.eez,
-      graticule: ws.layers.graticule ? graticuleLines(vp) : [],
-      palette: P,
-      show: { eez: ws.layers.eez, graticule: ws.layers.graticule },
-      region: c.bundle.meta.region,
-      zoom: vp?.zoom ?? 6,
-      theme,
-      online: ws.layers.online,
-    }),
+    ...base.over,
     ...caseLayers.filter((l) => l.id !== "sar"),
   ].filter(Boolean) as never, ws.opacity);
 
   const onHover = useCallback(
     (info: PickingInfo) => {
       if (info.coordinate) setCursor(info.coordinate as LonLat);
-      const id = info.layer?.id ?? "";
-      const o = info.object as Record<string, unknown> | undefined;
-      let mmsi: number | null = null;
-      let content: React.ReactNode = null;
-      if (o && (id.startsWith("tracks") || id.startsWith("heads") || id === "gaps" || id === "reach-fill")) {
-        mmsi = (o.mmsi as number) ?? ((o.v as { mmsi: number })?.mmsi ?? null);
-        const v = mmsi != null ? c.byMmsi.get(mmsi) : undefined;
-        if (v) {
-          const st = c.trackIdx.has(v.mmsi) ? (o.st as { sog: number | null } | undefined) : undefined;
-          content = (
-            <>
-              <b>{v.name}</b>
-              <div className="muted">MMSI {v.mmsi}, {HULL_LABEL[hullKind(v.vesselType)]}</div>
-              <div>{ROLE_LABEL[v.role]}{v.synthetic ? ", synthetic AIS" : ""}</div>
-              {st?.sog != null && <div className="num">{st.sog.toFixed(1)} kn at {fmtSignedH(h)}</div>}
-              {id === "gaps" && <div>AIS gap {(o.gap as { hours: number }).hours.toFixed(1)} h</div>}
-              {id === "reach-fill" && <div>Area reachable at 25 kn during a {(o.hours as number).toFixed(1)} h gap</div>}
-              {v.candidate && <div className="muted num">Score {v.candidate.score.toFixed(2)}, {v.candidate.band} band</div>}
-            </>
-          );
-        }
-      } else if (o && id === "cone") {
-        content = <><b>Forecast +{(o.properties as { hours: number }).hours} h</b><div className="muted">Where the oil is expected to be (OpenOil)</div></>;
-      } else if (o && id === "isochrones") {
-        content = <><b>{fmtSignedH(-(o.age as number))}</b><div className="muted">Where the oil was {o.age as number} h before the image</div></>;
-      } else if (id === "corridor") {
-        content = <><b>Release corridor</b><div className="muted">Where and when the oil could have been released, over the age prior</div></>;
-      } else if (id === "expanded") {
-        content = <><b>Expanded corridor</b><div className="muted">Used only by the reachability veto (outer ensemble + 5 km)</div></>;
-      } else if (id === "slick") {
-        const m = c.bundle.meta.slick.measures;
-        content = <><b>Slick</b><div className="muted num">{m.area_km2.toFixed(1)} km², {m.length_km.toFixed(1)} km long</div></>;
-      } else if (o && id === "targets") {
-        const p = o.props as { peak_db: number; approx_length_m: number; platform: boolean };
-        content = <><b>{p.platform ? "Bright point at a known platform" : "Bright point (simple CFAR)"}</b><div className="muted num">Peak {p.peak_db} dB, about {p.approx_length_m} m. Not validated.</div></>;
-      } else if (o && id === "platforms") {
-        content = <><b>Offshore platform</b><div className="muted">Public infrastructure layer</div></>;
-      } else if (o && id === "ports") {
-        const pp = (o.properties as Record<string, string>) ?? {};
-        content = <><b>{pp["Main Port Name"] ?? "Port"}</b><div className="muted">World Port Index</div></>;
-      } else if (o && id === "release") {
-        const v = c.byMmsi.get(o.mmsi as number);
-        content = <><b>{o.text as string}</b><div className="muted">{v?.name}: where its track best fits the slick</div></>;
-      } else if (o && id === "currents") {
-        const v = o.v as [number, number];
-        content = <><b>Current</b><div className="num">{Math.hypot(v[0], v[1]).toFixed(2)} m/s toward {Math.round((Math.atan2(v[0], v[1]) * 180) / Math.PI + 360) % 360}°</div></>;
-      } else if (o && id === "wind") {
-        const v = o.v as [number, number];
-        content = <><b>Wind (ERA5)</b><div className="num">{Math.hypot(v[0], v[1]).toFixed(1)} m/s from {Math.round((Math.atan2(-v[0], -v[1]) * 180) / Math.PI + 360) % 360}°</div></>;
-      } else if (o && id === "observations") {
-        content = <><b>{(o.oilSeen as boolean) ? "Oil observed" : "Searched, none found"}</b><div className="muted">Forecast verification record (Drift, Goes to)</div></>;
-      } else if (id === "back-route") {
-        content = <><b>Backward route</b><div className="muted">Ensemble mean of where the oil was, hour by hour</div></>;
-      } else if (id === "fwd-route") {
-        content = <><b>Forecast route</b><div className="muted">Mean position of the forecast oil, hour by hour</div></>;
-      }
+      const d = describePick(info, c, h);
+      const mmsi = d?.mmsi ?? null;
       if (useWorkspace.getState().hoverMmsi !== mmsi) useWorkspace.getState().hover(mmsi);
-      setHover(content ? { x: info.x, y: info.y, content } : null);
+      setHover(d ? { x: info.x, y: info.y, info: d } : null);
     },
     [c, h],
   );
@@ -179,6 +138,8 @@ export default function CaseMap() {
         setMeasure((m) => ({ active: true, pts: m.pts.length >= 2 ? [info.coordinate as LonLat] : [...m.pts, info.coordinate as LonLat] }));
         return;
       }
+      const d = describePick(info, c, useClock.getState().h);
+      setIdentified(d ? { title: d.title, subtitle: d.subtitle, rows: d.rows, at: (info.coordinate as LonLat) ?? null, fit: d.fit } : null);
       const o = info.object as Record<string, unknown> | undefined;
       const mmsi = (o?.mmsi as number) ?? (o?.v as { mmsi: number } | undefined)?.mmsi;
       if (mmsi && c.shipsUnlocked) {
@@ -188,7 +149,7 @@ export default function CaseMap() {
         st.toggleLayer("driftCorrected", true);
       }
     },
-    [c.shipsUnlocked, measure.active],
+    [c, measure.active],
   );
 
   useEffect(() => {
@@ -198,6 +159,9 @@ export default function CaseMap() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // A new case or step closes the identify panel.
+  useEffect(() => setIdentified(null), [c.bundle.entry.id, ws.step]);
 
   const measureInfo = measure.pts.length === 2
     ? `${fmtKmNm(distanceKm(measure.pts[0], measure.pts[1]))}, bearing ${Math.round(bearingDeg(measure.pts[0], measure.pts[1]))}°`
@@ -212,15 +176,45 @@ export default function CaseMap() {
     a.click();
   };
 
+  // Legend: every layer that is on and available, grouped like the layers panel.
+  const hasSar = Boolean(c.bundle.meta.satellite);
+  const legend: LegendGroup[] = [];
+  for (const l of LAYERS) {
+    if (!ws.layers[l.id]) continue;
+    if (l.ships && !c.shipsUnlocked) continue;
+    if ((l.id === "sar" || l.id === "targets") && !hasSar) continue;
+    if (l.id === "graticule") continue;
+    let g = legend.find((x) => x.title === l.group);
+    if (!g) legend.push((g = { title: l.group, items: [] }));
+    g.items.push({ key: l.id, swatch: <Swatch kind={l.swatch} />, label: l.label });
+  }
+  if (c.shipsUnlocked && SHIP_LAYERS.some((id) => ws.layers[id])) {
+    legend.push({
+      title: "Ship roles",
+      items: (["leading", "shortlist", "screened", "eliminated", "background"] as const).map((r) => ({
+        key: r,
+        swatch: <i className={`role-dot role-${r}`} />,
+        label: { leading: "Leading candidate", shortlist: "Plausible (shortlist)", screened: "Screened, not supported", eliminated: "Eliminated", background: "Background traffic" }[r],
+      })),
+    });
+  }
+
+  const attribution = basemapDef(basemap).attribution;
+  const zoomTo = identified
+    ? () => {
+        if (identified.fit) ws.requestFit(identified.fit);
+        else if (identified.at) mapRef.current?.flyTo(identified.at[0], identified.at[1], Math.max(vp?.zoom ?? 8, 10));
+      }
+    : undefined;
+
   return (
     <MapCanvas
       ref={mapRef}
       ariaLabel={`Map of case ${c.bundle.entry.id}`}
       layers={[
         ...layers,
-        ...(measure.pts.length
-          ? [measureLayer(measure.pts, P.focus)]
-          : []),
+        ...(measure.pts.length ? [measureLayer(measure.pts, P.focus)] : []),
+        ...(pin ? [pinLayer(pin, P.focus, P.ink)] : []),
       ]}
       fit={{ bounds: fitBounds, key: `${c.bundle.entry.id}:${ws.fitRequest.n}`, padding: 56, maxZoom: 11.5 }}
       onHover={onHover}
@@ -229,33 +223,62 @@ export default function CaseMap() {
       pitch={ws.tilt ? 50 : 0}
       cursor={measure.active ? "crosshair" : undefined}
     >
-      <ChartFrame vp={vp} />
-      {hover && <div className="map-tooltip" style={{ left: hover.x, top: hover.y }}>{hover.content}</div>}
+      <ChartFrame vp={vp} bottomInset={30} />
+      {hover && (
+        <div className="map-tooltip" style={{ left: hover.x, top: hover.y }}>
+          <b>{hover.info.title}</b>
+          {hover.info.subtitle && <div className="muted">{hover.info.subtitle}</div>}
+          {hover.info.rows.slice(0, 2).map(([k, v]) => <div key={k} className="num">{k}: {v}</div>)}
+          <div className="tooltip-hint">Click for details</div>
+        </div>
+      )}
       {measureInfo && <div className="map-banner num">{measureInfo} <span className="muted">(Esc to stop)</span></div>}
-      <div className="map-status">
+
+      <div className="map-tl">
+        <BasemapSwitcher />
+        <GoTo
+          active={Boolean(pin)}
+          onGo={(p) => { setPin(p); mapRef.current?.flyTo(p[0], p[1], Math.max(vp?.zoom ?? 7, 8)); }}
+          onClear={() => setPin(null)}
+        />
+      </div>
+
+      <div className="map-tr">
+        {identified && <IdentifyPanel item={identified} decimal={ws.decimalCoords} onClose={() => setIdentified(null)} onZoom={zoomTo} />}
+        <div className="map-ctrls">
+          <div className="ctrl-group">
+            <Tip content="Zoom in" side="left"><button type="button" className="icon-btn" aria-label="Zoom in" onClick={() => mapRef.current?.zoomBy(1)}><Plus size={16} /></button></Tip>
+            <Tip content="Zoom out" side="left"><button type="button" className="icon-btn" aria-label="Zoom out" onClick={() => mapRef.current?.zoomBy(-1)}><Minus size={16} /></button></Tip>
+            <Tip content="North up" side="left"><button type="button" className="icon-btn" aria-label="Reset north" onClick={() => mapRef.current?.resetNorth()}><Navigation size={16} /></button></Tip>
+          </div>
+          <div className="ctrl-group">
+            <Tip content="Fit slick" side="left"><button type="button" className="icon-btn" aria-label="Fit slick" onClick={() => ws.requestFit("slick")}><Target size={16} /></button></Tip>
+            <Tip content="Fit release corridor and forecast" side="left"><button type="button" className="icon-btn" aria-label="Fit corridor" onClick={() => ws.requestFit("drift")}><Waves size={16} /></button></Tip>
+            <Tip content={c.shipsUnlocked ? "Fit all ships" : "Decide on the oil check first"} side="left"><button type="button" className="icon-btn" aria-label="Fit ships" disabled={!c.shipsUnlocked} onClick={() => ws.requestFit("ships")}><Ship size={16} /></button></Tip>
+          </div>
+          <div className="ctrl-group">
+            <Tip content={ws.tilt ? "Flat map" : "Tilt map (3D)"} side="left"><button type="button" className="icon-btn" aria-pressed={ws.tilt} aria-label="Tilt map" onClick={() => ws.set({ tilt: !ws.tilt })}><span style={{ fontSize: 11, fontWeight: 700 }}>3D</span></button></Tip>
+            <Tip content="Measure distance" side="left"><button type="button" className="icon-btn" aria-pressed={measure.active} aria-label="Measure distance" onClick={() => setMeasure((m) => ({ active: !m.active, pts: [] }))}><Ruler size={16} /></button></Tip>
+            <Tip content="Save map image" side="left"><button type="button" className="icon-btn" aria-label="Save map image" onClick={saveImage}><Camera size={16} /></button></Tip>
+            <Tip content="Center on selected ship" side="left"><button type="button" className="icon-btn" aria-label="Center on selected ship" disabled={!selected} onClick={() => ws.requestFit("selected")}><Crosshair size={16} /></button></Tip>
+          </div>
+        </div>
+      </div>
+
+      <div className="map-bl">
+        <MapLegend groups={legend} />
+      </div>
+      <div className="map-br">
+        <OverviewMap vp={vp} land={shared.land} onJump={(p) => mapRef.current?.flyTo(p[0], p[1])} />
+      </div>
+
+      <div className="map-statusbar">
         <button type="button" className="coord-readout" onClick={() => ws.set({ decimalCoords: !ws.decimalCoords })} title="Switch between degrees-minutes and decimal">
           {cursor ? fmtLonLat(cursor, ws.decimalCoords) : "Move over the map"}
         </button>
         <ScaleBar vp={vp} />
-        {ws.layers.online && <span className="attribution">Basemap: Esri, GEBCO, NOAA, National Geographic and other contributors</span>}
-      </div>
-      <div className="map-ctrls">
-        <div className="ctrl-group">
-          <Tip content="Zoom in" side="left"><button type="button" className="icon-btn" aria-label="Zoom in" onClick={() => mapRef.current?.zoomBy(1)}><Plus size={16} /></button></Tip>
-          <Tip content="Zoom out" side="left"><button type="button" className="icon-btn" aria-label="Zoom out" onClick={() => mapRef.current?.zoomBy(-1)}><Minus size={16} /></button></Tip>
-          <Tip content="North up" side="left"><button type="button" className="icon-btn" aria-label="Reset north" onClick={() => mapRef.current?.resetNorth()}><Navigation size={16} /></button></Tip>
-        </div>
-        <div className="ctrl-group">
-          <Tip content="Fit slick" side="left"><button type="button" className="icon-btn" aria-label="Fit slick" onClick={() => ws.requestFit("slick")}><Target size={16} /></button></Tip>
-          <Tip content="Fit release corridor and forecast" side="left"><button type="button" className="icon-btn" aria-label="Fit corridor" onClick={() => ws.requestFit("drift")}><Waves size={16} /></button></Tip>
-          <Tip content={c.shipsUnlocked ? "Fit all ships" : "Decide on the oil check first"} side="left"><button type="button" className="icon-btn" aria-label="Fit ships" disabled={!c.shipsUnlocked} onClick={() => ws.requestFit("ships")}><Ship size={16} /></button></Tip>
-        </div>
-        <div className="ctrl-group">
-          <Tip content={ws.tilt ? "Flat map" : "Tilt map (3D)"} side="left"><button type="button" className="icon-btn" aria-pressed={ws.tilt} aria-label="Tilt map" onClick={() => ws.set({ tilt: !ws.tilt })}><span style={{ fontSize: 11, fontWeight: 700 }}>3D</span></button></Tip>
-          <Tip content="Measure distance" side="left"><button type="button" className="icon-btn" aria-pressed={measure.active} aria-label="Measure distance" onClick={() => setMeasure((m) => ({ active: !m.active, pts: [] }))}><Ruler size={16} /></button></Tip>
-          <Tip content="Save map image" side="left"><button type="button" className="icon-btn" aria-label="Save map image" onClick={saveImage}><Camera size={16} /></button></Tip>
-          <Tip content="Center on selected ship" side="left"><button type="button" className="icon-btn" aria-label="Center on selected ship" disabled={!selected} onClick={() => ws.requestFit("selected")}><Crosshair size={16} /></button></Tip>
-        </div>
+        <span className="status-zoom num" title="Zoom level">z {vp ? vp.zoom.toFixed(1) : "–"}</span>
+        {attribution && <span className="attribution">{attribution}</span>}
       </div>
     </MapCanvas>
   );
@@ -274,4 +297,18 @@ class MeasureLayer extends CompositeLayer<{ pts: LonLat[]; color: string }> {
 }
 function measureLayer(pts: LonLat[], color: string) {
   return new MeasureLayer({ id: "measure", pts, color });
+}
+
+class PinLayer extends CompositeLayer<{ p: LonLat; color: string; ring: string }> {
+  static layerName = "PinLayer";
+  renderLayers() {
+    const { p, color, ring } = this.props;
+    return [
+      new ScatterplotLayer({ id: "goto-halo", data: [p], getPosition: (d: LonLat) => d, getRadius: 14, radiusUnits: "pixels", getFillColor: rgba(color, 0.25), stroked: false }),
+      new ScatterplotLayer({ id: "goto-dot", data: [p], getPosition: (d: LonLat) => d, getRadius: 6, radiusUnits: "pixels", getFillColor: rgba(color), stroked: true, getLineColor: rgba(ring), getLineWidth: 2, lineWidthUnits: "pixels" }),
+    ];
+  }
+}
+function pinLayer(p: LonLat, color: string, ring: string) {
+  return new PinLayer({ id: "goto-pin", p, color, ring });
 }

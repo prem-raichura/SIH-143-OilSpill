@@ -1,21 +1,71 @@
 /*
-  Design tokens. Night is the default (nautical chart at night); Day is for projectors and print.
-  Map hues (past, future, ship ramp) were validated with the dataviz palette checker:
-  --pairs all, both modes, all checks pass. Keep src/design/palette.ts in sync (a test checks it).
+  Design tokens. Light is the default (ocean blue on white); Dark is a navy control-room variant.
+  Internal theme names stay "day" (light) and "night" (dark) so scripts and tests keep working.
+  Map hues (past, future, ship ramp) are validated with scripts/check-palette.mjs:
+  contrast on sea, pairwise separation, colour-blind separation. Keep src/design/palette.ts in sync (a test checks it).
 */
 :root,
+:root[data-theme="day"] {
+  color-scheme: light;
+  --bg: #F3F6F9;
+  --sea: #D9E9F4;
+  --land: #EFEBE0;
+  --coast: #B7AE92;
+  --panel: #FFFFFF;
+  --panel-2: #F4F7FA;
+  --panel-3: #E8EEF4;
+  --line: #E1E7EE;
+  --line-strong: #C9D3DD;
+  --ink: #0F2233;
+  --ink-2: #4F6475;
+  --ink-3: #8497A6;
+  --grid: #C6DBEA;
+  --past: #C2407E;
+  --future: #B86E00;
+  --ship-lead: #184F95;
+  --ship-short: #2A78D6;
+  --ship-screen: #86B6EF;
+  --ship-elim: #8A9AA3;
+  --ship-bg: #BCCAD3;
+  --for: #2A78D6;
+  --against: #E34948;
+  --focus: #FFC928;
+  --accent: #0B5FA5;
+  --accent-hover: #094E88;
+  --accent-soft: #E3EFFA;
+  --on-accent: #FFFFFF;
+  --teal: #0E9F8E;
+  --teal-soft: #DDF3EF;
+  --ring: #0B5FA5;
+  --good: #0E9F6E;
+  --warn: #D98B00;
+  --warn-soft: #FDF1DC;
+  --serious: #E0663A;
+  --critical: #D03B3B;
+  --v1: #8497A6;
+  --v2: #D98B00;
+  --v3: #D9534F;
+  --v4: #0B5FA5;
+  --v5: #0E9F8E;
+  --shadow-sm: 0 1px 2px rgba(15, 34, 51, 0.06), 0 1px 3px rgba(15, 34, 51, 0.05);
+  --shadow: 0 2px 6px rgba(15, 34, 51, 0.06), 0 8px 24px rgba(15, 34, 51, 0.1);
+  --scrim: rgba(15, 34, 51, 0.45);
+  --on-ink: #FFFFFF;
+}
+
 :root[data-theme="night"] {
   color-scheme: dark;
+  --bg: #0B1622;
   --sea: #0F2433;
   --land: #2B2C24;
   --coast: #4E5446;
-  --panel: #132A3A;
-  --panel-2: #1A3547;
-  --panel-3: #1F3D50;
-  --line: #23435A;
-  --line-strong: #33586F;
+  --panel: #122536;
+  --panel-2: #183044;
+  --panel-3: #1E3A50;
+  --line: #213E54;
+  --line-strong: #31566E;
   --ink: #E8EFF2;
-  --ink-2: #93A9B5;
+  --ink-2: #9BB0BC;
   --ink-3: #6D8591;
   --grid: #1B384B;
   --past: #D55181;
@@ -28,42 +78,27 @@
   --for: #3987E5;
   --against: #E66767;
   --focus: #FFD84D;
-  --good: #0CA30C;
-  --warn: #FAB219;
+  --accent: #3B9AF5;
+  --accent-hover: #62AEF7;
+  --accent-soft: rgba(59, 154, 245, 0.16);
+  --on-accent: #051220;
+  --teal: #2BC4B0;
+  --teal-soft: rgba(43, 196, 176, 0.16);
+  --ring: #62AEF7;
+  --good: #2BC48A;
+  --warn: #F2A93B;
+  --warn-soft: rgba(242, 169, 59, 0.16);
   --serious: #EC835A;
-  --critical: #D03B3B;
+  --critical: #E05252;
+  --v1: #6D8591;
+  --v2: #F2A93B;
+  --v3: #EF6B67;
+  --v4: #3B9AF5;
+  --v5: #2BC4B0;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
   --scrim: rgba(6, 16, 23, 0.72);
   --on-ink: #0F2433;
-}
-
-:root[data-theme="day"] {
-  color-scheme: light;
-  --sea: #EEF4F7;
-  --land: #EFE4C4;
-  --coast: #B9A97A;
-  --panel: #FFFFFF;
-  --panel-2: #F4F8FA;
-  --panel-3: #E9F0F3;
-  --line: #D5E0E6;
-  --line-strong: #BFCFD8;
-  --ink: #10222D;
-  --ink-2: #587381;
-  --ink-3: #7F96A2;
-  --grid: #D6E2E8;
-  --past: #C2407E;
-  --future: #B86E00;
-  --ship-lead: #184F95;
-  --ship-short: #2A78D6;
-  --ship-screen: #86B6EF;
-  --ship-elim: #8A9AA3;
-  --ship-bg: #C3CFD5;
-  --for: #2A78D6;
-  --against: #E34948;
-  --focus: #FFD84D;
-  --shadow: 0 6px 20px rgba(16, 34, 45, 0.12);
-  --scrim: rgba(238, 244, 247, 0.8);
-  --on-ink: #FFFFFF;
 }
 
 :root {
@@ -77,11 +112,12 @@
   --s6: 32px;
   --s7: 48px;
   --r-tag: 4px;
-  --r-btn: 6px;
+  --r-btn: 7px;
+  --r-card: 10px;
   --r-pill: 999px;
-  --topbar-h: 52px;
-  --stepbar-h: 44px;
-  --rail-w: 248px;
+  --topbar-h: 56px;
+  --stepbar-h: 52px;
+  --rail-w: 256px;
   --panel-w: 400px;
   --dock-h: 92px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);

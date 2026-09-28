@@ -15,10 +15,8 @@ export default function ScaleBar({ vp }: { vp: WebMercatorViewport | null }) {
   const km = [...NICE].reverse().find((d) => d / kmPerPx <= maxPx) ?? 0.5;
   return (
     <div className="scale-bar" aria-label={`Scale: ${nm} nautical miles, ${km} kilometres`}>
-      <span>{nm} nm</span>
-      <div className="bar" style={{ width: (nm * KM_PER_NM) / kmPerPx }} />
-      <div className="bar" style={{ width: km / kmPerPx, borderTop: "1px solid var(--ink)", borderBottom: 0, height: 5 }} />
-      <span>{km} km</span>
+      <span className="sb-row"><span className="bar" style={{ width: (nm * KM_PER_NM) / kmPerPx }} /><span>{nm} nm</span></span>
+      <span className="sb-row"><span className="bar bar-km" style={{ width: km / kmPerPx }} /><span>{km} km</span></span>
     </div>
   );
 }

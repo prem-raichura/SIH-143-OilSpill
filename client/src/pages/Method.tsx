@@ -1,3 +1,6 @@
+import { BookOpen } from "lucide-react";
+import { PageHeader } from "../components/ui";
+
 const STEPS = [
   ["Detect", "UNet++ segmentation on Sentinel-1 VV, LightGBM look-alike check with wind reliability"],
   ["Oil check", "A person confirms oil, marks a look-alike or is not sure; ships stay hidden until then"],
@@ -15,7 +18,7 @@ export default function Method() {
   const gap = (W - STEPS.length * box) / (STEPS.length - 1);
   return (
     <div className="page-pad reading method">
-      <h1 className="t-page">Method</h1>
+      <PageHeader icon={<BookOpen size={22} strokeWidth={1.8} />} title="Method" />
       <p className="l-lead">Deep learning finds oil pixels. Physics moves the oil. Transparent rules and weights decide what the evidence says about ships, and when it says nothing.</p>
       <svg className="pipeline-svg" viewBox={`0 0 ${W} 150`} role="img" aria-label="Pipeline: detect, oil check, measure, drift back, drift forward, screen ships, confirm, verdict">
         {STEPS.map(([t], i) => {
@@ -23,9 +26,10 @@ export default function Method() {
           const human = i === 1;
           return (
             <g key={t}>
-              <rect x={x} y={30} width={box} height={56} rx={6} fill={human ? "var(--ink)" : "var(--panel)"} stroke="var(--line-strong)" />
-              <text x={x + box / 2} y={63} textAnchor="middle" style={{ fill: human ? "var(--on-ink)" : "var(--ink)", fontWeight: 620, fontSize: 13 }}>{t}</text>
-              <text x={x + 8} y={22} style={{ fill: "var(--ink-2)", fontSize: 11 }}>{i + 1}</text>
+              <rect x={x} y={30} width={box} height={56} rx={9} fill={human ? "var(--warn)" : "var(--panel)"} stroke={human ? "var(--warn)" : "var(--accent)"} strokeWidth={1.5} />
+              <text x={x + box / 2} y={63} textAnchor="middle" style={{ fill: human ? "#fff" : "var(--ink)", fontWeight: 620, fontSize: 13 }}>{t}</text>
+              <circle cx={x + 12} cy={17} r={9} fill="var(--accent)" />
+              <text x={x + 12} y={21} textAnchor="middle" style={{ fill: "var(--on-accent)", fontSize: 10.5, fontWeight: 700 }}>{i + 1}</text>
               {i < STEPS.length - 1 && <path d={`M${x + box + 4} 58 H${x + box + gap - 6} m-6 -5 l6 5 -6 5`} fill="none" stroke="var(--ink-2)" />}
             </g>
           );

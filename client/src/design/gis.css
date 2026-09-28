@@ -1,0 +1,440 @@
+/* ---------- GIS map chrome: corners, basemap switcher, legend, identify, overview, status bar ---------- */
+.map-tl,
+.map-tr,
+.map-bl,
+.map-br {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+.map-tl > *,
+.map-tr > *,
+.map-bl > *,
+.map-br > * {
+  pointer-events: auto;
+}
+.map-tl {
+  top: 14px;
+  left: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: calc(100% - 90px);
+}
+.map-tr {
+  top: 14px;
+  right: 14px;
+  align-items: flex-start;
+}
+.map-bl {
+  left: 14px;
+  bottom: 42px;
+  flex-direction: column;
+  align-items: flex-start;
+  max-height: calc(100% - 110px);
+}
+.map-br {
+  right: 14px;
+  bottom: 42px;
+}
+
+/* Shared pill look for map controls */
+.map-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 11px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  box-shadow: var(--shadow);
+  font-size: 12.5px;
+  font-weight: 560;
+}
+button.map-chip {
+  cursor: pointer;
+}
+button.map-chip:hover,
+button.map-chip[data-state="open"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.bm-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+  flex: none;
+}
+
+/* Basemap popover */
+.basemap-pop {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  width: 300px;
+}
+.basemap-title {
+  font-size: 13px;
+}
+.basemap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.basemap-opt {
+  display: grid;
+  gap: 3px;
+  justify-items: start;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  background: var(--panel);
+  padding: 5px;
+  cursor: pointer;
+  min-width: 0;
+}
+.basemap-opt:hover {
+  border-color: var(--ink-3);
+}
+.basemap-opt[aria-checked="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+.bm-preview {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 42px;
+  border-radius: 4px;
+  color: #fff;
+}
+.bm-preview svg {
+  background: var(--accent);
+  border-radius: 50%;
+  padding: 2px;
+  width: 18px;
+  height: 18px;
+}
+.bm-label {
+  font-size: 12.5px;
+  font-weight: 620;
+}
+.bm-hint {
+  font-size: 10.5px;
+  line-height: 13px;
+  color: var(--ink-3);
+}
+
+/* Go to */
+.goto {
+  padding: 0 4px 0 10px;
+  gap: 6px;
+}
+.goto input {
+  border: 0;
+  background: transparent;
+  width: 150px;
+  font-size: 12.5px;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.goto:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow);
+}
+.goto.invalid {
+  border-color: var(--critical);
+}
+.goto-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+}
+
+/* Map control groups */
+.map-ctrls {
+  display: grid;
+  gap: 8px;
+}
+.ctrl-group {
+  display: grid;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.ctrl-group .icon-btn {
+  border-radius: 0;
+  width: 36px;
+  height: 36px;
+  color: var(--ink-2);
+}
+.ctrl-group .icon-btn:hover:not(:disabled) {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.ctrl-group .icon-btn + .icon-btn,
+.ctrl-group > * + * {
+  border-top: 1px solid var(--line);
+}
+
+/* Legend */
+.map-legend {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow);
+  width: 236px;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.legend-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  background: transparent;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  font-weight: 640;
+  cursor: pointer;
+  color: var(--ink);
+  width: 100%;
+}
+.legend-head svg:first-child {
+  color: var(--accent);
+}
+.legend-caret {
+  margin-left: auto;
+  color: var(--ink-3);
+  transition: transform 150ms var(--ease);
+  transform: rotate(-90deg);
+}
+.map-legend.open .legend-caret {
+  transform: none;
+}
+.map-legend:not(.open) {
+  width: auto;
+}
+.legend-body {
+  overflow-y: auto;
+  padding: 0 10px 8px;
+  border-top: 1px solid var(--line);
+  min-height: 0;
+}
+.legend-group h4 {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 8px 0 3px;
+}
+.legend-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+}
+.legend-group li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  line-height: 16px;
+}
+.legend-sw {
+  display: inline-grid;
+  place-items: center;
+}
+
+/* Identify */
+.identify {
+  width: 290px;
+  max-height: calc(100vh - 360px);
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  gap: 10px;
+  padding: 12px 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--accent);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow);
+  animation: pop-in 160ms var(--ease);
+}
+.identify header {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+.identify-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex: none;
+}
+.identify-title {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.identify-title b {
+  font-size: 14px;
+}
+.identify-title .muted {
+  font-size: 12px;
+  line-height: 16px;
+}
+.identify .kv dt,
+.identify .kv dd {
+  font-size: 12.5px;
+  padding: 5px 0;
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+/* Overview minimap */
+.overview {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: var(--sea);
+  line-height: 0;
+}
+.overview svg {
+  display: block;
+  cursor: pointer;
+}
+
+/* Status bar */
+.map-statusbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 10px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  border-top: 1px solid var(--line);
+  font-size: 11.5px;
+  color: var(--ink-2);
+  min-width: 0;
+}
+.map-statusbar .coord-readout {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  min-width: 168px;
+  text-align: left;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  color: var(--ink);
+}
+.map-statusbar .scale-bar {
+  display: grid;
+  gap: 1px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  font-size: 10px;
+  line-height: 11px;
+}
+.status-zoom {
+  padding: 1px 7px;
+  border-radius: var(--r-pill);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+}
+.map-statusbar .attribution {
+  margin-left: auto;
+  max-width: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+
+@media (max-width: 900px) {
+  .map-br {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .goto {
+    display: none;
+  }
+  .map-statusbar .coord-readout {
+    display: none;
+  }
+  .map-ctrls .ctrl-group:nth-child(3) {
+    display: none;
+  }
+  .identify {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: 12px;
+    width: auto;
+    max-height: 50vh;
+    z-index: 30;
+  }
+  .map-legend.open {
+    width: 200px;
+  }
+}
+
+/* Scale bar: nautical miles on top, kilometres below */
+.scale-bar .sb-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.scale-bar .bar {
+  display: inline-block;
+  height: 5px;
+  border: 1.5px solid var(--ink);
+  border-top: 0;
+}
+.scale-bar .bar-km {
+  border-top: 1.5px solid var(--ink);
+  border-bottom: 0;
+}

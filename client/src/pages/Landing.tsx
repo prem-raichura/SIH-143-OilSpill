@@ -143,6 +143,7 @@ export default function Landing() {
       <section className="hero">
         <HeroScene />
         <div className="hero-copy">
+          <span className="hero-kicker">Smart India Hackathon · Problem 26143</span>
           <h1 className="hero-title">Find the slick. Trace it back. Name the ship, or say why not.</h1>
           <p className="hero-sub">
             Satellite radar, ocean physics and ship tracks in one investigation, with the evidence for and against every ship laid out, and a
@@ -157,6 +158,7 @@ export default function Landing() {
       </section>
 
       <section id="how" className="l-section">
+        <span className="l-eyebrow">Workflow</span>
         <h2 className="l-h2">How an investigation runs</h2>
         <ol className="stages">
           {STAGES.map((s, i) => (
@@ -169,8 +171,10 @@ export default function Landing() {
         </ol>
       </section>
 
+      <div className="l-band">
       <section id="proof" className="l-section l-split">
         <div>
+          <span className="l-eyebrow">Results</span>
           <h2 className="l-h2">Measured, not claimed</h2>
           <p className="l-lead">
             {B
@@ -195,8 +199,10 @@ export default function Landing() {
           )}
         </div>
       </section>
+      </div>
 
       <section id="data" className="l-section">
+        <span className="l-eyebrow">Sources</span>
         <h2 className="l-h2">Data it runs on</h2>
         <dl className="data-list">
           {DATA.map(([k, v]) => (
@@ -209,6 +215,7 @@ export default function Landing() {
       </section>
 
       <section className="l-section">
+        <span className="l-eyebrow">Users</span>
         <h2 className="l-h2">Built for</h2>
         <p className="l-lead">Maritime pollution-response teams, coast guard investigators and port state control officers who need to act on a slick and defend the decision later.</p>
       </section>

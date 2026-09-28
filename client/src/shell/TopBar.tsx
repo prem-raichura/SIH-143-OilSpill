@@ -1,26 +1,27 @@
 import * as Popover from "@radix-ui/react-popover";
-import { LogOut, Menu, Moon, PlayCircle, Sun } from "lucide-react";
+import { BarChart3, BookOpen, ClipboardList, LogOut, Map, Menu, Moon, PlayCircle, Radar, ScanSearch, Ship, Sun, type LucideIcon } from "lucide-react";
 import { useDemo } from "../demo/GuidedDemo";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ROLE_TEXT } from "../auth/demoAccounts";
 import { canSeeShips, useSession } from "../auth/session";
+import { Tip } from "../components/ui";
 import { useTheme } from "../store/theme";
 
-const NAV = [
-  { to: "/app", label: "Console", end: true },
-  { to: "/app/cases", label: "Cases" },
-  { to: "/app/detection", label: "Detection test" },
-  { to: "/app/benchmark", label: "Benchmark" },
-  { to: "/app/vessels", label: "Vessels", ships: true },
-  { to: "/app/reviews", label: "Review log" },
-  { to: "/app/method", label: "Method" },
+const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean; ships?: boolean }[] = [
+  { to: "/app", label: "Console", icon: Radar, end: true },
+  { to: "/app/cases", label: "Cases", icon: Map },
+  { to: "/app/detection", label: "Detection test", icon: ScanSearch },
+  { to: "/app/benchmark", label: "Benchmark", icon: BarChart3 },
+  { to: "/app/vessels", label: "Vessels", icon: Ship, ships: true },
+  { to: "/app/reviews", label: "Review log", icon: ClipboardList },
+  { to: "/app/method", label: "Method", icon: BookOpen },
 ];
 
 export function Mark() {
   return (
     <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
       <path d="M4 21c4-6 8 2 12-3s7-2 12-1" stroke="var(--past)" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-      <path d="M8 13l8-5 8 5" stroke="var(--ink)" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 13l8-5 8 5" stroke="var(--accent)" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M4 26c4-2 8 1 12-1s7-1 12 0" stroke="var(--future)" strokeWidth="2" fill="none" strokeLinecap="round" />
     </svg>
   );
@@ -30,31 +31,35 @@ export default function TopBar() {
   const { theme, toggle } = useTheme();
   const { session, signOut } = useSession();
   const navigate = useNavigate();
-  const nav = NAV.filter((n) => !("ships" in n) || canSeeShips(session?.role));
+  const nav = NAV.filter((n) => !n.ships || canSeeShips(session?.role));
+  const initials = session ? session.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() : "";
   return (
     <header className="topbar">
       <NavLink to="/app" className="brand" aria-label="Oil spill investigation, home">
-        <Mark />
-        <span className="brand-name">Oil spill investigation</span>
+        <span className="brand-mark"><Mark /></span>
+        <span className="brand-name">Oil Spill Investigation</span>
         <span className="brand-sub">SIH 26143</span>
       </NavLink>
       <nav className="topnav" aria-label="Main">
         {nav.map((n) => (
           <NavLink key={n.to} to={n.to} end={n.end} className={({ isActive }) => `topnav-link${isActive ? " active" : ""}`}>
-            {n.label}
+            <n.icon size={16} strokeWidth={1.8} aria-hidden="true" />
+            <span>{n.label}</span>
           </NavLink>
         ))}
       </nav>
       <Popover.Root>
         <Popover.Trigger asChild>
-          <button type="button" className="btn btn-quiet menu-btn" aria-label="Open the menu"><Menu size={17} /> Menu</button>
+          <button type="button" className="btn btn-secondary menu-btn" aria-label="Open the menu"><Menu size={17} /> Menu</button>
         </Popover.Trigger>
         <Popover.Portal>
           <Popover.Content className="menu-pop" align="start" sideOffset={6}>
             <nav aria-label="Main">
               {nav.map((n) => (
                 <Popover.Close asChild key={n.to}>
-                  <NavLink to={n.to} end={n.end} className={({ isActive }) => `menu-link${isActive ? " active" : ""}`}>{n.label}</NavLink>
+                  <NavLink to={n.to} end={n.end} className={({ isActive }) => `menu-link${isActive ? " active" : ""}`}>
+                    <n.icon size={16} strokeWidth={1.8} aria-hidden="true" /> {n.label}
+                  </NavLink>
                 </Popover.Close>
               ))}
             </nav>
@@ -63,32 +68,49 @@ export default function TopBar() {
       </Popover.Root>
       <div className="topbar-right">
         {canSeeShips(session?.role) && (
-          <button type="button" className="btn btn-quiet" onClick={() => useDemo.getState().start()} title="Walk through the demo story">
-            <PlayCircle size={15} strokeWidth={1.5} /> <span className="hide-sm">Guided demo</span>
+          <button type="button" className="btn btn-accent-outline" onClick={() => useDemo.getState().start()} title="Walk through the demo story">
+            <PlayCircle size={15} strokeWidth={1.8} /> <span className="hide-sm">Guided demo</span>
           </button>
         )}
-        <button
-          type="button"
-          className="btn btn-quiet"
-          onClick={toggle}
-          aria-label={theme === "night" ? "Switch to day theme" : "Switch to night theme"}
-          title={theme === "night" ? "Day theme (better on projectors)" : "Night theme"}
-        >
-          {theme === "night" ? <Sun size={16} strokeWidth={1.5} /> : <Moon size={16} strokeWidth={1.5} />}
-          <span className="hide-sm">{theme === "night" ? "Day" : "Night"}</span>
-        </button>
+        <Tip content={theme === "night" ? "Switch to light theme" : "Switch to dark theme"} side="bottom">
+          <button type="button" className="icon-btn theme-btn" onClick={toggle} aria-label={theme === "night" ? "Switch to light theme" : "Switch to dark theme"}>
+            {theme === "night" ? <Sun size={17} strokeWidth={1.8} /> : <Moon size={17} strokeWidth={1.8} />}
+          </button>
+        </Tip>
         {session && (
-          <span className="user-chip" title={session.unit}>
-            <span className="avatar" aria-hidden="true">{session.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}</span>
-            <span className="user-text">
-              <b>{session.name}</b>
-              <span>{ROLE_TEXT[session.role].label}</span>
-            </span>
-          </span>
+          <Popover.Root>
+            <Popover.Trigger asChild>
+              <button type="button" className="user-chip" aria-label={`Account: ${session.name}`}>
+                <span className="avatar" aria-hidden="true">{initials}</span>
+                <span className="user-text">
+                  <b>{session.name}</b>
+                  <span>{ROLE_TEXT[session.role].label}</span>
+                </span>
+              </button>
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content className="menu-pop user-pop" align="end" sideOffset={6}>
+                <div className="user-pop-head">
+                  <span className="avatar avatar-lg" aria-hidden="true">{initials}</span>
+                  <div>
+                    <b>{session.name}</b>
+                    <span className="muted">{session.email}</span>
+                  </div>
+                </div>
+                <dl className="kv user-pop-kv">
+                  <dt>Role</dt>
+                  <dd>{ROLE_TEXT[session.role].label}</dd>
+                  <dt>Unit</dt>
+                  <dd>{session.unit}</dd>
+                </dl>
+                <p className="t-label">{ROLE_TEXT[session.role].can}</p>
+                <button type="button" className="btn btn-secondary" onClick={() => { signOut(); navigate("/"); }}>
+                  <LogOut size={15} strokeWidth={1.8} /> Sign out
+                </button>
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
         )}
-        <button type="button" className="btn btn-quiet" onClick={() => { signOut(); navigate("/"); }} aria-label="Sign out">
-          <LogOut size={15} strokeWidth={1.5} /> <span className="hide-sm">Sign out</span>
-        </button>
       </div>
     </header>
   );

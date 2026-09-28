@@ -8,9 +8,11 @@ function pickStep(span: number, target: number) {
   return STEPS.find((s) => span / s <= target) ?? 10;
 }
 
-export default function ChartFrame({ vp }: { vp: WebMercatorViewport | null }) {
+/** bottomInset: height of a status bar drawn over the bottom of the map; the frame sits above it. */
+export default function ChartFrame({ vp, bottomInset = 0 }: { vp: WebMercatorViewport | null; bottomInset?: number }) {
   if (!vp) return null;
-  const { width, height } = vp;
+  const { width } = vp;
+  const height = vp.height - bottomInset;
   const [w, n] = vp.unproject([0, 0]);
   const [e, s] = vp.unproject([width, height]);
   const B = 6; // border thickness
@@ -45,7 +47,7 @@ export default function ChartFrame({ vp }: { vp: WebMercatorViewport | null }) {
 
   return (
     <svg className="chart-frame" width={width} height={height} aria-hidden="true"
-      style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 3 }}>
+      style={{ position: "absolute", left: 0, top: 0, pointerEvents: "none", zIndex: 3 }}>
       <g>
         {lonBars.map((b, i) => (
           <g key={`lb${i}`}>

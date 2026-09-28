@@ -960,7 +960,7 @@ const DECK_TO_LAYER: [RegExp, LayerId][] = [
   [/^corridor/, "corridor"], [/^expanded$/, "expanded"], [/^fwd-particles$/, "fwdParticles"], [/^fwd-/, "fwdRoute"],
   [/^(cone|stranded|observations)/, "cone"], [/^(tracks|chevrons)/, "tracks"], [/^gap/, "gaps"], [/^reach-/, "reach"],
   [/^elim-/, "tracksElim"], [/^head/, "heads"], [/^release/, "release"], [/^drift-/, "driftCorrected"],
-  [/^currents$/, "currents"], [/^wind$/, "wind"], [/^eez/, "eez"], [/^graticule$/, "graticule"], [/^ports$/, "ports"], [/^platforms$/, "platforms"], [/^online/, "online"],
+  [/^currents$/, "currents"], [/^wind$/, "wind"], [/^eez/, "eez"], [/^graticule$/, "graticule"], [/^ports$/, "ports"], [/^platforms$/, "platforms"],
 ];
 
 /** Apply the per-layer opacity chosen in the layers panel. */

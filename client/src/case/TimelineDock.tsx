@@ -70,7 +70,7 @@ export default function TimelineDock() {
       <div className="dock-ctrls">
         <Tip content="Back 1 hour (Left arrow)"><button type="button" className="icon-btn" aria-label="Back one hour" onClick={() => clock.step(-1)}><SkipBack size={16} /></button></Tip>
         <Tip content={clock.playing ? "Pause (Space)" : "Play (Space)"}>
-          <button type="button" className="icon-btn" aria-label={clock.playing ? "Pause" : "Play"} onClick={() => clock.toggle()} style={{ width: 38, height: 38, background: "var(--ink)", color: "var(--on-ink)", borderRadius: "50%" }}>
+          <button type="button" className="icon-btn" aria-label={clock.playing ? "Pause" : "Play"} onClick={() => clock.toggle()} style={{ width: 38, height: 38, background: "var(--accent)", color: "var(--on-accent)", borderRadius: "50%", boxShadow: "var(--shadow-sm)" }}>
             {clock.playing ? <Pause size={16} /> : <Play size={16} />}
           </button>
         </Tip>
@@ -109,8 +109,8 @@ export default function TimelineDock() {
           viewBox={`0 0 ${W} ${H}`}
         >
           {/* past / future tint */}
-          <rect x={x(min)} y={axisY - 10} width={x(0) - x(min)} height={20} fill="var(--past)" opacity={0.1} />
-          <rect x={x(0)} y={axisY - 10} width={x(max) - x(0)} height={20} fill="var(--future)" opacity={0.1} />
+          <rect x={x(min)} y={axisY - 10} width={x(0) - x(min)} height={20} fill="var(--past)" opacity={0.14} rx={4} />
+          <rect x={x(0)} y={axisY - 10} width={x(max) - x(0)} height={20} fill="var(--future)" opacity={0.14} rx={4} />
           <line x1={x(min)} x2={x(max)} y1={axisY} y2={axisY} stroke="var(--line-strong)" />
           {ticks.map((t) => (
             <g key={t}>
@@ -179,8 +179,8 @@ export default function TimelineDock() {
             })}
 
           {/* scrubber */}
-          <line x1={x(clock.h)} x2={x(clock.h)} y1={2} y2={H - 2} stroke="var(--ink)" strokeWidth={1.5} />
-          <circle cx={x(clock.h)} cy={axisY} r={7} fill="var(--focus)" stroke="var(--sea)" strokeWidth={2} />
+          <line x1={x(clock.h)} x2={x(clock.h)} y1={2} y2={H - 2} stroke="var(--accent)" strokeWidth={1.5} />
+          <circle cx={x(clock.h)} cy={axisY} r={8} fill="var(--accent)" stroke="var(--panel)" strokeWidth={2.5} />
         </svg>
       </div>
 

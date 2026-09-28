@@ -16,7 +16,7 @@ function block(selector: string): Record<string, string> {
 const map: Record<string, string> = {
   sea: "sea", land: "land", coast: "coast", ink: "ink", ink2: "ink-2", grid: "grid", past: "past",
   future: "future", shipLead: "ship-lead", shipShort: "ship-short", shipScreen: "ship-screen",
-  shipElim: "ship-elim", shipBg: "ship-bg", focus: "focus",
+  shipElim: "ship-elim", shipBg: "ship-bg", focus: "focus", accent: "accent", teal: "teal",
 };
 
 describe("palette.ts mirrors tokens.css", () => {

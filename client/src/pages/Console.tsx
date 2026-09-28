@@ -2,21 +2,24 @@
 // Scene IDs and acquisition times are real (meta.json). Processing is replayed; the console says so.
 import type { WebMercatorViewport } from "@deck.gl/core";
 import { ScatterplotLayer, TextLayer } from "@deck.gl/layers";
-import { Pause, Play, RotateCcw, SkipForward } from "lucide-react";
+import { Pause, Play, Radar, RotateCcw, SkipForward } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ROLE_TEXT } from "../auth/demoAccounts";
 import { canSeeShips, useSession } from "../auth/session";
-import { ProvenanceBadges, Segmented, VerdictChip } from "../components/ui";
+import { PageHeader, ProvenanceBadges, StatCard, Tabs, Tip, VerdictChip } from "../components/ui";
 import { fetchJson, useCasesIndex, useShared } from "../data/load";
 import { PLACE, REGION_LABEL } from "../data/places";
 import type { CaseIndexEntry, Ledger, Meta, VerdictCode } from "../data/types";
 import { PALETTES, rgba } from "../design/palette";
+import BasemapSwitcher from "../map/BasemapSwitcher";
 import ChartFrame, { graticuleLines } from "../map/ChartFrame";
-import { basemapLayers, FONT_SANS } from "../map/layers/basemap";
+import { basemapDef, basemapLayers, FONT_SANS } from "../map/layers/basemap";
+import MapLegend from "../map/MapLegend";
 import { MapCanvas } from "../map/MapCanvas";
 import { fmtUtc, parseUtc } from "../lib/time";
 import { deriveVerdict } from "../lib/verdict";
+import { useMapPrefs } from "../store/mapPrefs";
 import { useReview } from "../store/review";
 import { useTheme } from "../store/theme";
 
@@ -45,6 +48,7 @@ export default function Console() {
   const [region, setRegion] = useState<Region>("india");
   const [vp, setVp] = useState<WebMercatorViewport | null>(null);
   const shared = useShared(region);
+  const basemap = useMapPrefs((s) => s.basemap);
   const raf = useRef(0);
 
   useEffect(() => {
@@ -101,8 +105,10 @@ export default function Console() {
   const waiting = feed.filter((f) => f.stage === 2).length;
 
   const markers = arrived.filter((p) => p.entry.region === region);
+  const base = basemapLayers({ land: shared.land, eez: shared.eez, graticule: graticuleLines(vp), palette: P, show: { eez: true, graticule: true }, region, zoom: vp?.zoom ?? 5, theme, basemap });
   const layers = [
-    ...basemapLayers({ land: shared.land, eez: shared.eez, graticule: graticuleLines(vp), palette: P, show: { eez: true, graticule: true }, region, zoom: vp?.zoom ?? 5, theme }),
+    ...base.under,
+    ...base.over,
     new ScatterplotLayer<Pass>({
       id: "console-pulse",
       data: markers.filter((p) => progress - passes.indexOf(p) < 1.2),
@@ -111,7 +117,7 @@ export default function Console() {
       radiusUnits: "pixels",
       stroked: true,
       filled: false,
-      getLineColor: (p) => rgba(P.ink, Math.max(0, 1 - (progress - passes.indexOf(p)))),
+      getLineColor: (p) => rgba(P.accent, Math.max(0, 1 - (progress - passes.indexOf(p)))),
       lineWidthUnits: "pixels",
       getLineWidth: 1.5,
       updateTriggers: { getRadius: progress, getLineColor: [progress, theme] },
@@ -123,11 +129,11 @@ export default function Console() {
       getRadius: 7,
       radiusUnits: "pixels",
       stroked: true,
-      getFillColor: (p) => (gates[p.entry.id] ? rgba(P.ink) : rgba(P.sea)),
-      getLineColor: rgba(P.ink),
+      getFillColor: (p) => (gates[p.entry.id] ? rgba(P.teal) : rgba(P.sea)),
+      getLineColor: (p) => (gates[p.entry.id] ? rgba(P.teal) : rgba(P.accent)),
       lineWidthUnits: "pixels",
-      getLineWidth: 1.5,
-      updateTriggers: { getFillColor: [gates, theme], getLineColor: theme },
+      getLineWidth: 2,
+      updateTriggers: { getFillColor: [gates, theme], getLineColor: [gates, theme] },
     }),
     new TextLayer<Pass>({
       id: "console-labels",
@@ -160,23 +166,28 @@ export default function Console() {
     <div className="console">
       <aside className="console-feed" aria-label="Satellite pass feed">
         <header className="console-head">
-          <div>
-            <h1 className="t-page">Console</h1>
-            <p className="muted" style={{ fontSize: 13 }}>
-              Signed in as {session.name}, {ROLE_TEXT[session.role].label.toLowerCase()}. {waiting > 0 ? `${waiting} ${waiting === 1 ? "slick waits" : "slicks wait"} for an oil check.` : "No slick is waiting for an oil check."}
-            </p>
+          <PageHeader
+            icon={<Radar size={22} strokeWidth={1.8} />}
+            title="Console"
+            description={<>Signed in as {session.name}, {ROLE_TEXT[session.role].label.toLowerCase()}.</>}
+          />
+          <div className={`console-alert${waiting > 0 ? " on" : ""}`} role="status">
+            {waiting > 0 ? `${waiting} ${waiting === 1 ? "slick waits" : "slicks wait"} for an oil check.` : "No slick is waiting for an oil check."}
           </div>
           <div className="replay-bar">
             <span className="replay-badge"><i aria-hidden="true" /> Replay of archived passes</span>
             <span className="num replay-clock" aria-live="off">{replayClock}</span>
             <span className="replay-ctrls">
-              <button type="button" className="icon-btn" aria-label={playing ? "Pause replay" : "Play replay"} onClick={() => setPlaying((p) => !p)}>
-                {playing ? <Pause size={15} /> : <Play size={15} />}
-              </button>
-              <button type="button" className="icon-btn" aria-label="Restart replay" onClick={() => { setProgress(0); setPlaying(true); }}><RotateCcw size={15} /></button>
-              <button type="button" className="icon-btn" aria-label="Show all passes now" onClick={() => { setProgress(passes.length + 1); setPlaying(false); }}><SkipForward size={15} /></button>
+              <Tip content={playing ? "Pause replay" : "Play replay"}>
+                <button type="button" className="icon-btn replay-play" aria-label={playing ? "Pause replay" : "Play replay"} onClick={() => setPlaying((p) => !p)}>
+                  {playing ? <Pause size={15} /> : <Play size={15} />}
+                </button>
+              </Tip>
+              <Tip content="Restart replay"><button type="button" className="icon-btn" aria-label="Restart replay" onClick={() => { setProgress(0); setPlaying(true); }}><RotateCcw size={15} /></button></Tip>
+              <Tip content="Show all passes now"><button type="button" className="icon-btn" aria-label="Show all passes now" onClick={() => { setProgress(passes.length + 1); setPlaying(false); }}><SkipForward size={15} /></button></Tip>
             </span>
           </div>
+          <div className="replay-progress" aria-hidden="true"><span style={{ width: `${passes.length ? Math.min(100, (progress / (passes.length + 1)) * 100) : 0}%` }} /></div>
         </header>
         <ol className="feed" aria-live="polite">
           {feed.map(({ p, i, stage }) => {
@@ -208,25 +219,48 @@ export default function Console() {
               </li>
             );
           })}
-          {!feed.length && <li className="muted" style={{ padding: 16 }}>Waiting for the first pass…</li>}
+          {!feed.length && <li className="empty" style={{ margin: 16 }}>Waiting for the first pass…</li>}
         </ol>
       </aside>
       <section className="console-main">
+        <div className="console-maphead">
+          <Tabs<Region> label="Region" value={region} onChange={setRegion} options={[
+            { value: "india", label: REGION_LABEL.india, badge: arrived.filter((p) => p.entry.region === "india").length },
+            { value: "gulf_of_mexico", label: REGION_LABEL.gulf_of_mexico, badge: arrived.filter((p) => p.entry.region === "gulf_of_mexico").length },
+          ]} />
+        </div>
         <div className="console-map">
-          <div className="view-switch" style={{ top: 12 }}>
-            <Segmented<Region> label="Region" value={region} onChange={setRegion} options={[{ value: "india", label: REGION_LABEL.india }, { value: "gulf_of_mexico", label: REGION_LABEL.gulf_of_mexico }]} />
-          </div>
           <MapCanvas ariaLabel="Map of incoming slicks" layers={layers} fit={{ bounds: REGION_BOUNDS[region], key: region, padding: 24 }} onViewport={setVp}>
-            <ChartFrame vp={vp} />
+            <ChartFrame vp={vp} bottomInset={30} />
+            <div className="map-tl"><BasemapSwitcher /></div>
+            <div className="map-bl">
+              <MapLegend groups={[{
+                title: "Passes",
+                items: [
+                  { key: "new", swatch: <svg width="20" height="14" aria-hidden="true"><circle cx="10" cy="7" r="5" fill="var(--sea)" stroke="var(--accent)" strokeWidth="2" /></svg>, label: "Slick, waiting for review" },
+                  { key: "done", swatch: <svg width="20" height="14" aria-hidden="true"><circle cx="10" cy="7" r="5" fill="var(--teal)" stroke="var(--teal)" strokeWidth="2" /></svg>, label: "Oil check answered" },
+                  { key: "eez", swatch: <svg width="20" height="14" aria-hidden="true"><path d="M1 7H19" stroke="var(--ink-2)" strokeDasharray="4 2" /></svg>, label: "EEZ boundary" },
+                ],
+              }]} />
+            </div>
+            <div className="map-statusbar">
+              <span>{markers.length} of {passes.filter((p) => p.entry.region === region).length} passes in view</span>
+              <span className="status-zoom num">z {vp ? vp.zoom.toFixed(1) : "–"}</span>
+              {basemapDef(basemap).attribution && <span className="attribution">{basemapDef(basemap).attribution}</span>}
+            </div>
           </MapCanvas>
         </div>
         <div className="pipeline" aria-label="Pipeline status">
-          {STAGES.map((s, k) => (
-            <div key={s} className={`pipe-stage${k === 2 && counts[2] ? " attention" : ""}`}>
-              <span className="pipe-n num">{k === 5 ? feed.filter((f) => f.stage === 5).length : counts[k]}</span>
-              <span className="pipe-label">{k === 2 ? "Waiting for oil check" : k === 5 ? "Verdict ready" : s}</span>
-            </div>
-          ))}
+          <div className="pipeline-cards">
+            {STAGES.map((s, k) => (
+              <StatCard
+                key={s}
+                value={k === 5 ? feed.filter((f) => f.stage === 5).length : counts[k]}
+                label={k === 2 ? "Waiting for oil check" : k === 5 ? "Verdict ready" : s}
+                tone={k === 2 && counts[2] ? "warn" : k === 5 ? "teal" : k === 0 ? "accent" : undefined}
+              />
+            ))}
+          </div>
           <p className="pipe-note">
             Machine stages run automatically. The oil check waits for a person; drift, attribution and the verdict follow it.
             {!canSeeShips(session.role) && " Your role sees oil checks and drift, not candidate ships."}

@@ -1,6 +1,7 @@
+import { BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { CountBars, DotCIRows, TradeoffLines } from "../charts/charts";
-import { ErrorNote, Loading, Segmented, SyntheticBadge } from "../components/ui";
+import { ErrorNote, Loading, PageHeader, SyntheticBadge, Tabs } from "../components/ui";
 import { useBenchmark } from "../data/load";
 import type { BenchmarkSetA, BenchmarkSetB } from "../data/types";
 import { VERDICT_SHORT } from "../lib/verdict";
@@ -20,10 +21,7 @@ export default function Benchmark() {
 
   return (
     <div className="page-pad reading">
-      <header className="page-head">
-        <h1 className="t-page">How often it names the wrong ship</h1>
-        <SyntheticBadge>Synthetic benchmark</SyntheticBadge>
-      </header>
+      <PageHeader icon={<BarChart3 size={22} strokeWidth={1.8} />} title="How often it names the wrong ship" actions={<SyntheticBadge>Synthetic benchmark</SyntheticBadge>} />
       <p className="l-lead">
         On {b.held_out.set_B.n} held-out synthetic scenarios where the source ship was not in AIS, the system named a ship{" "}
         {b.held_out.set_B.wrongful_naming[0]} times (95 % CI {pct(b.held_out.set_B.wrongful_naming[1][0])} to {pct(b.held_out.set_B.wrongful_naming[1][1])}).
@@ -35,7 +33,7 @@ export default function Benchmark() {
         odd-numbered, held-out half. Set A and Set B are never merged into one accuracy number.
       </p>
       <div className="bench-controls">
-        <Segmented label="Split" value={split} onChange={setSplit} options={[{ value: "held_out", label: "Held out" }, { value: "tuning", label: "Tuning" }]} />
+        <Tabs label="Split" variant="pill" value={split} onChange={setSplit} options={[{ value: "held_out", label: "Held out" }, { value: "tuning", label: "Tuning" }]} />
         <label className="check-row"><span /><span>Show tables</span><input type="checkbox" checked={tables} onChange={(e) => setTables(e.target.checked)} /></label>
       </div>
 

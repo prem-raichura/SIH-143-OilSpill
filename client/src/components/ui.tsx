@@ -1,5 +1,5 @@
 import * as RTooltip from "@radix-ui/react-tooltip";
-import type { ReactNode } from "react";
+import { useRef, type KeyboardEvent, type ReactNode } from "react";
 import type { VerdictCode } from "../data/types";
 import { labelInfo } from "../data/places";
 import { VERDICT_SHORT } from "../lib/verdict";
@@ -25,7 +25,7 @@ export function SyntheticBadge({ children = "Synthetic" }: { children?: ReactNod
 
 export function VerdictChip({ code, label }: { code: VerdictCode; label?: string }) {
   return (
-    <span className="verdict-chip" title={`Verdict ${code}: ${label ?? VERDICT_SHORT[code]}`}>
+    <span className="verdict-chip" data-v={code} title={`Verdict ${code}: ${label ?? VERDICT_SHORT[code]}`}>
       <span className="n">{code}</span>
       {label ?? VERDICT_SHORT[code]}
     </span>
@@ -72,6 +72,98 @@ export function Segmented<T extends string | number>({
           {o.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+export interface TabOption<T> {
+  value: T;
+  label: ReactNode;
+  icon?: ReactNode;
+  badge?: ReactNode;
+  disabled?: boolean;
+  title?: string;
+}
+
+/** Tabs that switch what a region shows. Arrow keys move between tabs (roving focus). */
+export function Tabs<T extends string | number>({
+  value,
+  options,
+  onChange,
+  label,
+  variant = "underline",
+  className,
+}: {
+  value: T;
+  options: TabOption<T>[];
+  onChange: (v: T) => void;
+  label: string;
+  variant?: "underline" | "pill";
+  className?: string;
+}) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const onKey = (e: KeyboardEvent, i: number) => {
+    const dir = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (!dir) return;
+    e.preventDefault();
+    for (let k = 1; k <= options.length; k++) {
+      const j = (i + dir * k + options.length) % options.length;
+      if (!options[j].disabled) {
+        refs.current[j]?.focus();
+        onChange(options[j].value);
+        return;
+      }
+    }
+  };
+  return (
+    <div className={`tabs tabs-${variant}${className ? ` ${className}` : ""}`} role="tablist" aria-label={label}>
+      {options.map((o, i) => {
+        const on = o.value === value;
+        return (
+          <button
+            key={String(o.value)}
+            ref={(el) => {
+              refs.current[i] = el;
+            }}
+            type="button"
+            role="tab"
+            aria-selected={on}
+            tabIndex={on ? 0 : -1}
+            disabled={o.disabled}
+            title={o.title}
+            className="tab"
+            onClick={() => onChange(o.value)}
+            onKeyDown={(e) => onKey(e, i)}
+          >
+            {o.icon}
+            <span>{o.label}</span>
+            {o.badge != null && <span className="tab-badge num">{o.badge}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function PageHeader({ icon, title, description, actions }: { icon?: ReactNode; title: ReactNode; description?: ReactNode; actions?: ReactNode }) {
+  return (
+    <header className="page-header">
+      {icon && <span className="page-icon" aria-hidden="true">{icon}</span>}
+      <div className="page-header-text">
+        <h1 className="t-page">{title}</h1>
+        {description && <p>{description}</p>}
+      </div>
+      {actions && <div className="page-header-actions">{actions}</div>}
+    </header>
+  );
+}
+
+export function StatCard({ value, label, tone, sub }: { value: ReactNode; label: ReactNode; tone?: "accent" | "teal" | "warn" | "past" | "future"; sub?: ReactNode }) {
+  return (
+    <div className={`stat-card${tone ? ` tone-${tone}` : ""}`}>
+      <span className="stat-value num">{value}</span>
+      <span className="stat-label">{label}</span>
+      {sub && <span className="stat-sub">{sub}</span>}
     </div>
   );
 }
@@ -133,7 +225,7 @@ export function ErrorNote({ error }: { error: Error }) {
 }
 
 /** Horizontal meter 0..1 (e.g. rank-first share). */
-export function Meter({ value, label, color = "var(--ink)" }: { value: number; label?: string; color?: string }) {
+export function Meter({ value, label, color = "var(--accent)" }: { value: number; label?: string; color?: string }) {
   const v = Math.max(0, Math.min(1, value));
   return (
     <span className="meter" role="meter" aria-valuemin={0} aria-valuemax={1} aria-valuenow={v} aria-label={label}>

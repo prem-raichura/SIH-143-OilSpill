@@ -1,10 +1,12 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ScanSearch, Search, ShieldCheck } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { DEMO_ACCOUNTS, ROLE_TEXT } from "../auth/demoAccounts";
+import { DEMO_ACCOUNTS, ROLE_TEXT, type Role } from "../auth/demoAccounts";
 import { useSession } from "../auth/session";
 import { dataUrl } from "../data/load";
 import { Mark } from "../shell/TopBar";
+
+const ROLE_ICON: Record<Role, typeof Search> = { analyst: ScanSearch, investigator: Search, supervisor: ShieldCheck };
 
 export default function Login() {
   const { session, signIn } = useSession();
@@ -53,6 +55,7 @@ export default function Login() {
             <span className="t-label">Demo accounts</span>
             {DEMO_ACCOUNTS.map((a) => (
               <button key={a.role} type="button" className="demo-acc" onClick={() => { setEmail(a.email); setPassword(a.password); setError(null); }}>
+                {(() => { const I = ROLE_ICON[a.role]; return <span className="demo-icon" aria-hidden="true"><I size={17} strokeWidth={1.8} /></span>; })()}
                 <b>{ROLE_TEXT[a.role].label}</b>
                 <span>{ROLE_TEXT[a.role].can}</span>
               </button>

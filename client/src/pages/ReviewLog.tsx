@@ -1,8 +1,8 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { Download, Trash2, Upload } from "lucide-react";
+import { ClipboardList, Download, Inbox, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { useSession } from "../auth/session";
-import { Segmented } from "../components/ui";
+import { PageHeader, Tabs } from "../components/ui";
 import { fmtUtc } from "../lib/time";
 import { exportJson, useReview } from "../store/review";
 
@@ -39,15 +39,13 @@ export default function ReviewLog() {
 
   return (
     <div className="page-pad reading">
-      <header className="page-head">
-        <h1 className="t-page">Review log</h1>
-      </header>
+      <PageHeader icon={<ClipboardList size={22} strokeWidth={1.8} />} title="Review log" />
       <p className="muted" style={{ maxWidth: "70ch" }}>
         Every oil check and detection-test answer, in the feedback format of the spec (section 12). These records feed a curated dataset for
         periodic, offline retraining. Nothing retrains automatically, and test-set scenes never enter training. Stored in this browser only.
       </p>
       <div className="bench-controls">
-        <Segmented<Src> label="Source" value={src} onChange={setSrc} options={[{ value: "all", label: `All ${feedback.length}` }, { value: "case", label: "Oil checks" }, { value: "test_set", label: "Detection test" }]} />
+        <Tabs<Src> label="Source" variant="pill" value={src} onChange={setSrc} options={[{ value: "all", label: "All", badge: feedback.length }, { value: "case", label: "Oil checks" }, { value: "test_set", label: "Detection test" }]} />
         <button type="button" className="btn btn-secondary" onClick={download} disabled={!feedback.length}><Download size={14} /> Export JSON</button>
         {canManage && <button type="button" className="btn btn-secondary" onClick={() => fileRef.current?.click()}><Upload size={14} /> Import JSON</button>}
         {canManage && <button type="button" className="btn btn-quiet" onClick={() => setConfirm(true)} disabled={!feedback.length}><Trash2 size={14} /> Clear log</button>}

@@ -1,16 +1,20 @@
 import type { PickingInfo, WebMercatorViewport } from "@deck.gl/core";
 import { GeoJsonLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
+import { ChevronRight, Map as MapIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ErrorNote, Loading, ProvenanceBadges, Segmented, VerdictChip } from "../components/ui";
+import { ErrorNote, Loading, PageHeader, ProvenanceBadges, StatCard, Tabs, VerdictChip } from "../components/ui";
 import { dataUrl, fetchJson, useCasesIndex, useShared } from "../data/load";
 import { PLACE, REGION_LABEL } from "../data/places";
 import type { CaseIndexEntry, FeatureCollection, Meta, PolygonGeometry } from "../data/types";
 import { PALETTES, rgba } from "../design/palette";
+import BasemapSwitcher from "../map/BasemapSwitcher";
 import ChartFrame, { graticuleLines } from "../map/ChartFrame";
-import { basemapLayers, FONT_SANS } from "../map/layers/basemap";
+import { basemapDef, basemapLayers, FONT_SANS } from "../map/layers/basemap";
+import MapLegend from "../map/MapLegend";
 import { MapCanvas } from "../map/MapCanvas";
 import { fmtUtc } from "../lib/time";
+import { useMapPrefs } from "../store/mapPrefs";
 import { useTheme } from "../store/theme";
 
 type Region = "india" | "gulf_of_mexico";
@@ -35,6 +39,7 @@ export default function Home() {
   const theme = useTheme((s) => s.theme);
   const P = PALETTES[theme];
   const shared = useShared(region);
+  const basemap = useMapPrefs((s) => s.basemap);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,24 +74,27 @@ export default function Home() {
 
   const markerPos = (c: CaseIndexEntry): [number, number] => geos[c.id]?.meta.slick.measures.centroid ?? c.centroid;
 
+  const base = basemapLayers({
+    land: shared.land,
+    eez: shared.eez,
+    graticule: graticuleLines(vp),
+    palette: P,
+    show: { eez: true, graticule: true },
+    region,
+    zoom: vp?.zoom ?? 4,
+    theme,
+    basemap,
+  });
   const layers = [
-    ...basemapLayers({
-      land: shared.land,
-      eez: shared.eez,
-      graticule: graticuleLines(vp),
-      palette: P,
-      show: { eez: true, graticule: true },
-      region,
-      zoom: vp?.zoom ?? 4,
-      theme,
-    }),
+    ...base.under,
+    ...base.over,
     new GeoJsonLayer({
       id: "home-slicks",
       data: cases.flatMap((c) => geos[c.id]?.slick.features ?? []) as never,
       filled: true,
       stroked: true,
-      getFillColor: rgba("#000000", 0.45),
-      getLineColor: rgba(P.ink),
+      getFillColor: rgba("#1D1712", 0.5),
+      getLineColor: rgba(P.past),
       lineWidthUnits: "pixels",
       getLineWidth: 1.5,
       updateTriggers: { getLineColor: theme },
@@ -99,10 +107,10 @@ export default function Home() {
       radiusUnits: "pixels",
       stroked: true,
       filled: true,
-      getFillColor: (c) => (c.id === hot ? rgba(P.ink, 0.18) : rgba(P.sea, 0.01)),
-      getLineColor: rgba(P.ink),
+      getFillColor: (c) => (c.id === hot ? rgba(P.accent, 0.3) : rgba(P.sea, 0.35)),
+      getLineColor: rgba(P.accent),
       lineWidthUnits: "pixels",
-      getLineWidth: (c) => (c.id === hot ? 2 : 1.25),
+      getLineWidth: (c) => (c.id === hot ? 2.5 : 1.75),
       pickable: true,
       updateTriggers: { getRadius: hot, getFillColor: [hot, theme], getLineWidth: hot, getLineColor: theme, getPosition: Object.keys(geos).length },
       transitions: { getRadius: 150 },
@@ -142,20 +150,22 @@ export default function Home() {
     <div className="home">
       <aside className="home-list" aria-label="Cases">
         <div className="home-intro">
-          <h1 className="t-page">Cases</h1>
+          <PageHeader icon={<MapIcon size={22} strokeWidth={1.8} />} title="Cases" description="Pick a slick to investigate. Hover a case to find it on the map." />
           {index.data && (
-            <p>
-              {counts.total} cases: {counts.fullyReal} fully real (Gulf of Mexico), {counts.realIndian} real Indian slicks with
-              synthetic ship traffic, {counts.synthetic} fully synthetic scenarios.
-            </p>
+            <div className="stat-grid stat-grid-4">
+              <StatCard value={counts.total} label="Cases" tone="accent" />
+              <StatCard value={counts.fullyReal} label="Fully real" sub="Gulf of Mexico" tone="teal" />
+              <StatCard value={counts.realIndian} label="Real slick" sub="Synthetic ships" />
+              <StatCard value={counts.synthetic} label="Synthetic" sub="Simulated scenario" />
+            </div>
           )}
-          <Segmented<Region>
+          <Tabs<Region>
             label="Region"
             value={region}
             onChange={setRegion}
             options={[
-              { value: "india", label: `${REGION_LABEL.india} ${counts.india || ""}` },
-              { value: "gulf_of_mexico", label: `${REGION_LABEL.gulf_of_mexico} ${counts.gulf_of_mexico || ""}` },
+              { value: "india", label: REGION_LABEL.india, badge: counts.india || undefined },
+              { value: "gulf_of_mexico", label: REGION_LABEL.gulf_of_mexico, badge: counts.gulf_of_mexico || undefined },
             ]}
           />
         </div>
@@ -170,19 +180,23 @@ export default function Home() {
                 to={`/app/case/${c.id}`}
                 role="listitem"
                 className={`case-row${hot === c.id ? " hot" : ""}`}
+                data-v={c.verdict.code}
                 onMouseEnter={() => setHot(c.id)}
                 onMouseLeave={() => setHot((h) => (h === c.id ? null : h))}
                 onFocus={() => setHot(c.id)}
               >
-                <span className="id">{c.id}</span>
-                <VerdictChip code={c.verdict.code} />
+                <span className="case-top">
+                  <span className="id num">{c.id}</span>
+                  <VerdictChip code={c.verdict.code} />
+                </span>
                 <span className="place">{PLACE[c.id] ?? c.note}</span>
                 <span className="meta">
                   {fmtUtc(c.t_image)}
-                  {m ? `, ${m.length_km.toFixed(0)} km slick` : ""}
+                  {m ? ` · ${m.length_km.toFixed(0)} km slick` : ""}
                 </span>
                 <span className="badges">
                   <ProvenanceBadges labels={c.labels} />
+                  <ChevronRight size={16} className="case-go" aria-hidden="true" />
                 </span>
               </Link>
             );
@@ -200,7 +214,25 @@ export default function Home() {
           }}
           onViewport={setVp}
         >
-          <ChartFrame vp={vp} />
+          <ChartFrame vp={vp} bottomInset={30} />
+          <div className="map-tl"><BasemapSwitcher /></div>
+          <div className="map-bl">
+            <MapLegend
+              groups={[{
+                title: "Map",
+                items: [
+                  { key: "case", swatch: <svg width="20" height="14" aria-hidden="true"><circle cx="10" cy="7" r="5" fill="none" stroke="var(--accent)" strokeWidth="1.8" /></svg>, label: "Case (click to open)" },
+                  { key: "slick", swatch: <svg width="20" height="14" aria-hidden="true"><path d="M2 10c4-6 10-7 16-6-3 4-9 8-16 6z" fill="rgba(29,23,18,.5)" stroke="var(--past)" strokeWidth="1.5" /></svg>, label: "Slick outline" },
+                  { key: "eez", swatch: <svg width="20" height="14" aria-hidden="true"><path d="M1 7H19" stroke="var(--ink-2)" strokeDasharray="4 2" /></svg>, label: "EEZ boundary" },
+                ],
+              }]}
+            />
+          </div>
+          <div className="map-statusbar">
+            <span>{REGION_LABEL[region]}: {cases.length} cases</span>
+            <span className="status-zoom num">z {vp ? vp.zoom.toFixed(1) : "–"}</span>
+            {basemapDef(basemap).attribution && <span className="attribution">{basemapDef(basemap).attribution}</span>}
+          </div>
           {hotCase && hoverXY && (
             <div className="hover-card" style={{ left: Math.min(hoverXY.x + 16, (vp?.width ?? 800) - 250), top: Math.max(8, hoverXY.y - 170) }}>
               {hotCase.entry.has_sar_image ? (
