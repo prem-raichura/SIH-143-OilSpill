@@ -34,4 +34,3 @@ Thumbs.db
 
 # Local test artefacts
 *.local
-client/public/data/**/.DS_Store

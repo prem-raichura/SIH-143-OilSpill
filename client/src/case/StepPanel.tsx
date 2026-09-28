@@ -52,7 +52,7 @@ export default function StepPanel() {
   if (next && next.id === "followup" && !stepAllowed("followup", c).ok) next = undefined as never;
   const nextAllowed = next ? stepAllowed(next.id, c) : { ok: false };
   return (
-    <aside className="panel" aria-label="Step details">
+    <aside className="panel" id="step-panel" tabIndex={-1} aria-label="Step details">
       <div className="panel-scroll" key={step}>
         {BODY[step]()}
       </div>

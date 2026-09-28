@@ -1348,14 +1348,29 @@ input[type="range"] {
     margin: 0;
     padding: 0;
     max-width: none;
+    /* Chrome drops content when breaking pages inside CSS grid: use plain blocks for print. */
+    display: block;
+  }
+  .report > section,
+  .report > header {
+    display: block;
+    margin-bottom: 22px;
+  }
+  .report > section > * + * {
+    margin-top: 8px;
   }
   .page-break {
     break-before: page;
   }
   .report-ship,
   .report-map,
-  .check-list li {
+  .check-list li,
+  .report li {
     break-inside: avoid;
+  }
+  .report h2,
+  .report h3 {
+    break-after: avoid;
   }
 }
 
@@ -1631,4 +1646,37 @@ input[type="range"] {
   font-size: 10.5px;
   color: var(--ink-2);
   max-width: 260px;
+}
+
+/* Skip links: hidden until focused */
+.skip-links a {
+  white-space: nowrap;
+  position: absolute;
+  left: 8px;
+  top: -300px;
+  z-index: 100;
+  background: var(--ink);
+  color: var(--on-ink);
+  padding: 8px 12px;
+  border-radius: var(--r-btn);
+  text-decoration: none;
+  font-weight: 600;
+}
+.skip-links a:focus {
+  top: 8px;
+}
+.panel:focus-visible {
+  outline-offset: -3px;
+}
+.map-wrap div[tabindex="0"]:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -3px;
+}
+.skip-links {
+  position: absolute; /* out of the workspace grid flow */
+  top: 0;
+  left: 0;
+}
+.ws {
+  position: relative;
 }

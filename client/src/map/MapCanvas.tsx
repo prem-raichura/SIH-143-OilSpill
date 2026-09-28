@@ -42,7 +42,7 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   const animateTo = useCallback((target: Partial<MapViewState>, ms: number) => {
     cancelAnimationFrame(anim.current);
     const from = { ...viewRef.current };
-    if (ms <= 0 || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+    if (ms <= 0 || document.visibilityState === "hidden" || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
       setViewState({ ...from, ...target });
       return;
     }
@@ -109,6 +109,12 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
 
   useEffect(() => {
     if (import.meta.env.DEV) (window as unknown as { __deck?: unknown }).__deck = deckRef.current?.deck;
+    // Make the map itself focusable so arrow keys pan and +/- zoom (deck.gl keyboard controller).
+    const host = deckRef.current?.deck?.getCanvas()?.parentElement;
+    if (host && !host.getAttribute("aria-label")) {
+      host.tabIndex = 0;
+      host.setAttribute("aria-label", `${ariaLabel}. Arrow keys pan, plus and minus zoom.`);
+    }
   });
 
   useImperativeHandle(ref, () => ({
@@ -132,15 +138,39 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
     setViewState({ ...vs, zoom: clampZoom(vs.zoom) });
   }, []);
 
+  // Keyboard: arrows pan a fifth of the view (Shift: half), + and - zoom. Our own tween keeps the view state controlled.
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.target as HTMLElement).closest("input, select, textarea, button")) return;
+    const vs = viewRef.current;
+    const k = e.shiftKey ? 0.5 : 0.2;
+    const vp = new WebMercatorViewport({ ...vs, width: size.width, height: size.height });
+    const cx = size.width / 2, cy = size.height / 2;
+    const pan = (dx: number, dy: number) => {
+      const [longitude, latitude] = vp.unproject([cx + dx * size.width * k, cy + dy * size.height * k]);
+      animateTo({ longitude, latitude }, 220);
+    };
+    switch (e.key) {
+      case "ArrowLeft": pan(-1, 0); break;
+      case "ArrowRight": pan(1, 0); break;
+      case "ArrowUp": pan(0, -1); break;
+      case "ArrowDown": pan(0, 1); break;
+      case "+": case "=": animateTo({ zoom: clampZoom(vs.zoom + 1) }, 220); break;
+      case "-": case "_": animateTo({ zoom: clampZoom(vs.zoom - 1) }, 220); break;
+      default: return;
+    }
+    interacted.current = true;
+    e.preventDefault();
+  };
+
   return (
-    <div ref={wrap} className="map-wrap" style={{ position: "absolute", inset: 0 }} role="application" aria-label={ariaLabel}>
+    <div ref={wrap} className="map-wrap" style={{ position: "absolute", inset: 0 }} role="application" aria-label={ariaLabel} onKeyDown={onKeyDown}>
       {size.width > 0 && (
         <DeckGL
           ref={deckRef}
           views={MAP_VIEW}
           viewState={viewState}
           onViewStateChange={onViewStateChange as never}
-          controller={{ doubleClickZoom: true, touchRotate: true, dragRotate: true, keyboard: true }}
+          controller={{ doubleClickZoom: true, touchRotate: true, dragRotate: true, keyboard: false }}
           layers={layers.filter(Boolean) as Layer[]}
           onHover={onHover}
           onClick={onClick}

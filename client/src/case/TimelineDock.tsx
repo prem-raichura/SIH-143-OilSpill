@@ -66,7 +66,7 @@ export default function TimelineDock() {
   const absMs = parseUtc(tImage) + clock.h * 3_600_000;
 
   return (
-    <div className="dock" aria-label="Timeline">
+    <div className="dock" id="timeline" aria-label="Timeline">
       <div className="dock-ctrls">
         <Tip content="Back 1 hour (Left arrow)"><button type="button" className="icon-btn" aria-label="Back one hour" onClick={() => clock.step(-1)}><SkipBack size={16} /></button></Tip>
         <Tip content={clock.playing ? "Pause (Space)" : "Play (Space)"}>

@@ -1,0 +1,17 @@
+# Repo root: the app lives in client/ (see client/.gitignore)
+node_modules/
+dist/
+.vercel/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.log
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp

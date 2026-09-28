@@ -60,6 +60,11 @@ export default function CasePage() {
   return (
     <CaseCtx.Provider value={c}>
       <div className="ws">
+        <nav className="skip-links" aria-label="Skip links">
+          <a href="#step-panel" onClick={(e) => { e.preventDefault(); document.getElementById("step-panel")?.focus(); }}>Skip to step details</a>
+          <a href="#case-map" onClick={(e) => { e.preventDefault(); (document.querySelector("#case-map canvas")?.parentElement as HTMLElement | null)?.focus(); }}>Skip to the map</a>
+          <a href="#timeline" onClick={(e) => { e.preventDefault(); (document.querySelector("#timeline svg") as HTMLElement | null)?.focus(); }}>Skip to the timeline</a>
+        </nav>
         <header className="ws-head">
           <Link to="/app/cases" className="back"><ChevronLeft size={15} /> Cases</Link>
           <div className="ws-title">
@@ -102,7 +107,7 @@ export default function CasePage() {
         </nav>
         <div className={`ws-body${ws.railOpen ? "" : " rail-closed"}`}>
           <LayerRail />
-          <section className="ws-center" aria-label="Map and 3D views">
+          <section className="ws-center" id="case-map" aria-label="Map and 3D views">
             <div className="view-switch">
               <Segmented<View>
                 label="View"
