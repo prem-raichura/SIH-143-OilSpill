@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { ClipboardList, Download, Trash2, Upload } from "lucide-react";
+import { ClipboardList, Download, Inbox, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { useSession } from "../auth/session";
 import { PageHeader, Tabs } from "../components/ui";
@@ -58,6 +58,7 @@ export default function ReviewLog() {
       </p>
       {rows.length === 0 ? (
         <div className="empty">
+          <Inbox size={20} strokeWidth={1.8} aria-hidden="true" />
           <b>No reviews yet.</b>
           <span>Answer an oil check in any case, or judge tiles in the detection test.</span>
         </div>

@@ -54,7 +54,7 @@ function MiniMap({ c, title, mode = "overview" }: { c: CaseDerived; title: strin
   return (
     <figure className="report-map">
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={title}>
-        <rect width={W} height={H} fill="#EEF4F7" />
+        <rect width={W} height={H} fill="#D9E9F4" />
         {show.cone && cone.map((f, i) => geometryRings(f.geometry).map((r, j) => <path key={`${i}-${j}`} d={d(r, true)} fill="#B86E00" fillOpacity={0.12} stroke="#B86E00" strokeWidth={1} />))}
         {show.corridor && c.release && geometryRings(c.release.geometry).map((r, i) => <path key={i} d={d(r, true)} fill="#C2407E" fillOpacity={0.12} stroke="#C2407E" strokeWidth={1.2} />)}
         {show.ages && c.ages.map((f, i) => geometryRings(f.geometry).map((r, j) => <path key={`a${i}-${j}`} d={d(r, true)} fill="none" stroke="#C2407E" strokeOpacity={0.45} strokeWidth={0.8} />))}
@@ -64,12 +64,12 @@ function MiniMap({ c, title, mode = "overview" }: { c: CaseDerived; title: strin
         {show.ships && keyShips.map((v) => (
           <path key={v.mmsi} d={d(clip(v))} fill="none" stroke={v.role === "leading" ? "#184F95" : v.role === "shortlist" ? "#2A78D6" : "#86B6EF"} strokeWidth={v.role === "leading" ? 2.5 : 1.6} />
         ))}
-        {c.slickRings.map((r, i) => <path key={i} d={d(r, true)} fill="#1D1712" fillOpacity={0.5} stroke="#10222D" strokeWidth={1.3} />)}
+        {c.slickRings.map((r, i) => <path key={i} d={d(r, true)} fill="#1D1712" fillOpacity={0.5} stroke="#0F2233" strokeWidth={1.3} />)}
         {show.ships && keyShips.filter((v) => v.candidate && v.role !== "screened").map((v) => {
           const [x, y] = P(v.candidate!.best_fit_position).split(",").map(Number);
           return <circle key={`r${v.mmsi}`} cx={x} cy={y} r={5} fill="#fff" stroke="#C2407E" strokeWidth={2} />;
         })}
-        <rect width={W} height={H} fill="none" stroke="#BFCFD8" />
+        <rect width={W} height={H} fill="none" stroke="#C9D3DD" />
       </svg>
       <figcaption>{title}. {captions[mode]}</figcaption>
     </figure>

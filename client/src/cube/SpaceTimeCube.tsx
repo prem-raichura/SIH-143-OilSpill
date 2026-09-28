@@ -148,7 +148,7 @@ export default function SpaceTimeCube() {
       id: "cube-tracks",
       data: tracks,
       getPath: (t) => t.pts.map(Z),
-      getColor: (t) => (t.v.mmsi === focus ? rgba(P.focus) : roleColor(P, t.v.role as Role)),
+      getColor: (t) => (t.v.mmsi === focus ? rgba(P.accent) : roleColor(P, t.v.role as Role)),
       getWidth: (t) => (t.v.role === "leading" || t.v.mmsi === focus ? 3 : 1.6),
       widthUnits: "pixels",
       pickable: true,

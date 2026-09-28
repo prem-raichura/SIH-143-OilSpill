@@ -1,7 +1,7 @@
 import { Play } from "lucide-react";
 import { useEffect } from "react";
 import { StackedArea } from "../../charts/charts";
-import { KV, Segmented, Section } from "../../components/ui";
+import { KV, Section, Tabs } from "../../components/ui";
 import type { MassBudget } from "../../data/types";
 import { bearingDeg, distanceKm, fmtKm } from "../../lib/geo";
 import { useClock } from "../../store/clock";
@@ -43,7 +43,7 @@ export default function DriftStep() {
   return (
     <>
       <PanelHead title="Drift">Where the oil came from, where it goes next, and the ocean and wind that move it.</PanelHead>
-      <Segmented
+      <Tabs
         label="Drift view"
         value={driftTab}
         onChange={setDriftTab}
