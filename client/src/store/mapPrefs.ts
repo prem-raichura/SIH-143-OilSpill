@@ -1,4 +1,4 @@
-// Viewer map preferences (basemap). Kept in this browser only; the offline chart is the safe default.
+// Viewer map preferences (basemap). Kept in this browser only; ocean is the default view.
 import { create } from "zustand";
 
 export type BasemapId = "chart" | "ocean" | "satellite" | "light" | "dark";
@@ -8,9 +8,9 @@ const IDS: BasemapId[] = ["chart", "ocean", "satellite", "light", "dark"];
 function initial(): BasemapId {
   try {
     const v = localStorage.getItem(KEY) as BasemapId | null;
-    return v && IDS.includes(v) ? v : "chart";
+    return v && IDS.includes(v) ? v : "ocean";
   } catch {
-    return "chart";
+    return "ocean";
   }
 }
 

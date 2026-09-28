@@ -26,9 +26,9 @@ export default function OilCheckStep() {
   const gate = c.gate;
   const blindActive = blindMode && !gate && !firstAnswer;
 
-  // Blind review: the outline stays hidden until the first answer.
+  // Blind review: the outline stays hidden until the first answer (system-driven, not a user pick).
   useEffect(() => {
-    toggleLayer("slick", !blindActive);
+    toggleLayer("slick", !blindActive, false);
   }, [blindActive, toggleLayer]);
 
   const decide = (label: GateLabel) => {

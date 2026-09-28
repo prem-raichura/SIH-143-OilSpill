@@ -101,6 +101,8 @@ export interface WorkspaceState {
   driftTab: "back" | "fwd" | "forcing";
   onlyShortlist: boolean;
   colorBySpeed: boolean;
+  /** Layers the user explicitly toggled. These stick across steps; step presets only fill in the rest. */
+  touched: Partial<Record<LayerId, boolean>>;
   revealed: Record<string, boolean>;
   followWindowH: number;
   tilt: boolean;
@@ -111,7 +113,7 @@ export interface WorkspaceState {
   enterCase: (caseId: string) => void;
   setStep: (s: Step) => void;
   setView: (v: View) => void;
-  toggleLayer: (id: LayerId, on?: boolean) => void;
+  toggleLayer: (id: LayerId, on?: boolean, touch?: boolean) => void;
   resetLayers: () => void;
   setSarOpacity: (o: number) => void;
   setOpacity: (id: LayerId, o: number) => void;
@@ -143,6 +145,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   driftTab: "back",
   onlyShortlist: false,
   colorBySpeed: false,
+  touched: {},
   revealed: {},
   followWindowH: 24,
   tilt: false,
@@ -154,7 +157,7 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     if (get().caseId === caseId) return;
     set({
       caseId, step: "image", view: "map", layers: layersFor("image"), sarOpacity: 0.9, selectedMmsi: null, hoverMmsi: null,
-      driftTab: "back", fitRequest: { kind: "sar", n: get().fitRequest.n + 1 },
+      driftTab: "back", touched: {}, fitRequest: { kind: "sar", n: get().fitRequest.n + 1 },
     });
   },
   setStep: (step) => {
@@ -167,14 +170,18 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     }
     set((s) => ({
       step,
-      layers: layersFor(step),
+      // Step presets fill in layers the user never touched; explicit user picks stick across steps.
+      layers: { ...layersFor(step), ...s.touched },
       sarOpacity: SAR_OPACITY[step] ?? 0.9,
       fitRequest: { kind: FIT_FOR[step], n: s.fitRequest.n + 1 },
     }));
   },
   setView: (view) => set({ view }),
-  toggleLayer: (id, on) => set((s) => ({ layers: { ...s.layers, [id]: on ?? !s.layers[id] } })),
-  resetLayers: () => set((s) => ({ layers: layersFor(s.step), opacity: {} })),
+  toggleLayer: (id, on, touch = true) => set((s) => {
+    const value = on ?? !s.layers[id];
+    return { layers: { ...s.layers, [id]: value }, touched: touch ? { ...s.touched, [id]: value } : s.touched };
+  }),
+  resetLayers: () => set((s) => ({ layers: layersFor(s.step), opacity: {}, touched: {} })),
   setSarOpacity: (sarOpacity) => set({ sarOpacity }),
   setOpacity: (id, o) => set((s) => ({ opacity: { ...s.opacity, [id]: o } })),
   select: (selectedMmsi) => set({ selectedMmsi }),

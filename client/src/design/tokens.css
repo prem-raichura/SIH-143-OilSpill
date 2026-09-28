@@ -117,8 +117,8 @@
   --r-pill: 999px;
   --topbar-h: 56px;
   --stepbar-h: 52px;
-  --rail-w: 256px;
-  --panel-w: 400px;
+  --rail-w: 220px;
+  --panel-w: 350px;
   --dock-h: 92px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
