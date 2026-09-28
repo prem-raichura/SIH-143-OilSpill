@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { ClipboardList, Download, Inbox, Trash2, Upload } from "lucide-react";
+import { ClipboardList, Download, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { useSession } from "../auth/session";
 import { PageHeader, Tabs } from "../components/ui";
