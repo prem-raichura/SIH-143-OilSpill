@@ -69,7 +69,7 @@ export default function Landing() {
           <ChartPlate framing="hero" animate />
         </div>
         <div className="hero-copy">
-          <h1 className="hero-title" id="hero-title">Find the slick. Trace it back. Name the ship, or say why not.</h1>
+          <h1 className="hero-title" id="hero-title">From detecting spills to protecting the marine ecosystem, OILENS leads the way.</h1>
           <p className="hero-sub">
             Satellite radar, ocean currents and ship tracks in one investigation. The evidence for and against every ship is laid out, and
             the system says so when the data can't decide.
