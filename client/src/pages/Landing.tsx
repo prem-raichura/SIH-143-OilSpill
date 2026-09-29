@@ -44,7 +44,7 @@ export default function Landing() {
   const session = useSession((s) => s.session);
   const bench = useBenchmark().data;
   useEffect(() => {
-    document.title = "Oilens";
+    document.title = "OILENS";
   }, []);
   const B = bench?.held_out.set_B;
   const cmp = bench?.comparison_methods_held_out;
@@ -52,9 +52,9 @@ export default function Landing() {
   return (
     <div className="landing">
       <header className="landing-bar">
-        <Link to="/" className="brand" aria-label="Oilens, start page">
+        <Link to="/" className="brand" aria-label="OILENS, start page">
           <span className="brand-mark"><Mark /></span>
-          <span className="brand-name">Oilens</span>
+          <span className="brand-name">OILENS</span>
         </Link>
         <nav aria-label="Page sections" className="landing-nav">
           <a href="#how" onClick={(e) => jump(e, "how")}>How it works</a>
@@ -159,8 +159,8 @@ export default function Landing() {
       </section>
 
       <footer className="landing-foot">
-        <span className="brand"><span className="brand-mark"><Mark /></span> Oilens</span>
-        <span>© 2026 Oilens</span>
+        <span className="brand"><span className="brand-mark"><Mark /></span> OILENS</span>
+        <span>© 2026 OILENS</span>
       </footer>
     </div>
   );

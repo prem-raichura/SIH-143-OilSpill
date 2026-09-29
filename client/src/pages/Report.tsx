@@ -98,7 +98,7 @@ export default function Report() {
     document.title = `Report ${id}`;
     return () => {
       document.documentElement.setAttribute("data-theme", prev ?? "night");
-      document.title = "Oilens";
+      document.title = "OILENS";
     };
   }, [id]);
 
@@ -119,7 +119,7 @@ export default function Report() {
       </div>
       <article className="report">
         <header className="report-head">
-          <span className="t-label">Oilens investigation report</span>
+          <span className="t-label">OILENS investigation report</span>
           <h1 className="t-page">{entry.id}: <span className="place">{PLACE[entry.id]}</span></h1>
           <p className="num">Image {fmtUtc(entry.t_image)}. Generated {fmtUtc(Date.now())}{session ? ` by ${session.name} (${session.role})` : ""}.</p>
         </header>

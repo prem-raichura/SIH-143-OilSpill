@@ -15,7 +15,8 @@ export default function LayerRail() {
   const c = useCase();
   const { layers, toggleLayer, resetLayers, set, opacity, setOpacity, requestFit, sarOpacity, setSarOpacity, selectedMmsi } = useWorkspace();
   const advanced = useMapPrefs((s) => s.advanced);
-  const shown = LAYERS.filter((l) => advanced || !ADVANCED_ONLY.includes(l.id));
+  // Analysts review oil only: ship layers are not listed for them at all.
+  const shown = LAYERS.filter((l) => (advanced || !ADVANCED_ONLY.includes(l.id)) && !(l.ships && c.analyst));
   const groups = [...new Set(shown.map((l) => l.group))];
   const hasSar = Boolean(c.bundle.meta.satellite);
   return (

@@ -424,6 +424,7 @@ export default function OceanScene() {
             { value: "edge", label: "Slick edge" },
           ]}
         />
+        {!c.analyst && (
         <label className="scene-field">
           <span>Hypothesis ship</span>
           <select className="select" value={opts.hypothesis ?? ""} disabled={!c.shipsUnlocked} onChange={(e) => set({ hypothesis: e.target.value ? Number(e.target.value) : null })}>
@@ -433,6 +434,7 @@ export default function OceanScene() {
             ))}
           </select>
         </label>
+        )}
         <div className="scene-toggles">
           <label title="Grey-scale, the way the satellite radar sees the sea"><input type="checkbox" checked={opts.sar} onChange={(e) => set({ sar: e.target.checked, preset: e.target.checked ? "satellite" : opts.preset, presetKey: opts.presetKey + (e.target.checked ? 1 : 0) })} /> Radar look</label>
           <label><input type="checkbox" checked={opts.trueScale} onChange={(e) => set({ trueScale: e.target.checked })} /> True ship size</label>
@@ -452,7 +454,7 @@ export default function OceanScene() {
           Hypothesis: if {hyp.name} released oil around {fmtUtc(hyp.candidate!.best_fit_release_time)}. Illustration, not evidence.
         </div>
       )}
-      {!c.shipsUnlocked && <div className="scene-banner" role="note">Ships appear after the oil check. Showing the oil only.</div>}
+      {!c.shipsUnlocked && !c.analyst && <div className="scene-banner" role="note">Ships appear after the oil check. Showing the oil only.</div>}
       {h < -(hyp?.candidate ? hyp.candidate.best_fit_age_h : c.bundle.meta.slick.measures.age_prior_h.max) && (
         <div className="scene-hud scene-hud-note" role="note">
           No oil on the water yet: this is before {hyp?.candidate ? "the hypothesis release time" : "the oldest age in the prior"}. Move the timeline forward.

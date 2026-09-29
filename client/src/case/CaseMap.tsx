@@ -222,8 +222,8 @@ export default function CaseMap() {
   const tools: MapTool[] = [
     { key: "north", label: "North up", icon: <Navigation size={16} />, onClick: () => mapRef.current?.resetNorth() },
     { key: "fit-drift", label: "Show release area and forecast", icon: <Waves size={16} />, onClick: () => ws.requestFit("drift") },
-    { key: "fit-ships", label: "Show all ships", icon: <Ship size={16} />, onClick: () => ws.requestFit("ships"), disabled: !c.shipsUnlocked, disabledReason: "Decide on the oil check first" },
-    { key: "ship", label: "Centre on the selected ship", icon: <Crosshair size={16} />, onClick: () => ws.requestFit("selected"), disabled: !selected, disabledReason: "Select a ship first" },
+    ...(c.analyst ? [] : [{ key: "fit-ships", label: "Show all ships", icon: <Ship size={16} />, onClick: () => ws.requestFit("ships"), disabled: !c.shipsUnlocked, disabledReason: "Decide on the oil check first" },
+    { key: "ship", label: "Centre on the selected ship", icon: <Crosshair size={16} />, onClick: () => ws.requestFit("selected"), disabled: !selected, disabledReason: "Select a ship first" }] as MapTool[]),
     { key: "measure", label: "Measure distance", icon: <Ruler size={16} />, onClick: () => setMeasure((m) => ({ active: !m.active, pts: [] })), pressed: measure.active },
     { key: "tilt", label: ws.tilt ? "Flat map" : "Tilt map (3D)", icon: <span style={{ fontSize: 11, fontWeight: 700 }}>3D</span>, onClick: () => ws.set({ tilt: !ws.tilt }), pressed: ws.tilt },
     { key: "save", label: "Save map image", icon: <Camera size={16} />, onClick: saveImage },

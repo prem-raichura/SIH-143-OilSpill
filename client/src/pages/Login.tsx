@@ -31,9 +31,9 @@ export default function Login() {
     <div className="login">
       <section className="login-art" aria-label="Chart of an investigation off Mumbai">
         <ChartPlate framing="panel" />
-        <Link to="/" className="login-art-brand" aria-label="Oilens, start page">
+        <Link to="/" className="login-art-brand" aria-label="OILENS, start page">
           <span className="brand-mark"><Mark /></span>
-          <span>Oilens</span>
+          <span>OILENS</span>
         </Link>
         <div className="login-art-caption">
           <span className="place">Mumbai approaches</span>

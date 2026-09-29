@@ -228,11 +228,13 @@ export default function SpaceTimeCube() {
           <span className="t-label">Vertical scale {zs.toFixed(1)} km per hour</span>
           <input type="range" min={0.3} max={4} step={0.1} value={zs} onChange={(e) => setZs(Number(e.target.value))} />
         </label>
-        <label className="check-row">
-          <span /> <span>Only leading and shortlist</span>
-          <input type="checkbox" checked={onlyKey} onChange={(e) => setOnlyKey(e.target.checked)} />
-        </label>
-        {!c.shipsUnlocked && <p className="note">Ships appear after the oil check.</p>}
+        {!c.analyst && (
+          <label className="check-row">
+            <span /> <span>Only leading and shortlist</span>
+            <input type="checkbox" checked={onlyKey} onChange={(e) => setOnlyKey(e.target.checked)} />
+          </label>
+        )}
+        {!c.shipsUnlocked && !c.analyst && <p className="note">Ships appear after the oil check.</p>}
         <p className="t-label">Thin frame: the current timeline time. Highlighted track: the selected ship. Drag to rotate, scroll to zoom.</p>
       </details>
     </div>
