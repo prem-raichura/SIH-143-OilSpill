@@ -19,11 +19,7 @@ const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean; ships?:
 
 export function Mark() {
   return (
-    <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M4 21c4-6 8 2 12-3s7-2 12-1" stroke="var(--past)" strokeWidth="2.6" fill="none" strokeLinecap="round" />
-      <path d="M8 13l8-5 8 5" stroke="var(--accent)" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M4 26c4-2 8 1 12-1s7-1 12 0" stroke="var(--future)" strokeWidth="2" fill="none" strokeLinecap="round" />
-    </svg>
+    <img src="/logo/final_logo.png" width="22" height="22" alt="" aria-hidden="true" />
   );
 }
 
