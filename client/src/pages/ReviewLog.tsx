@@ -2,6 +2,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { ClipboardList, Download, Inbox, Trash2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { useSession } from "../auth/session";
+import { Spinner, useBusyAction } from "../components/loaders";
 import { PageHeader, Tabs } from "../components/ui";
 import { fmtUtc } from "../lib/time";
 import { exportJson, useReview } from "../store/review";
@@ -13,6 +14,7 @@ export default function ReviewLog() {
   const role = useSession((s) => s.session?.role);
   const [src, setSrc] = useState<Src>("all");
   const [msg, setMsg] = useState<string | null>(null);
+  const [importing, runImport] = useBusyAction();
   const [confirm, setConfirm] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const rows = feedback.filter((f) => src === "all" || f.source === src).slice().reverse();
@@ -26,7 +28,7 @@ export default function ReviewLog() {
     a.click();
     URL.revokeObjectURL(a.href);
   };
-  const onImport = async (f: File) => {
+  const onImport = (f: File) => runImport(async () => {
     try {
       const data = JSON.parse(await f.text());
       if (!Array.isArray(data.feedback)) throw new Error("no feedback array");
@@ -35,7 +37,7 @@ export default function ReviewLog() {
     } catch (e) {
       setMsg(`Couldn't import that file: ${(e as Error).message}. Use a file exported from this page.`);
     }
-  };
+  });
 
   return (
     <div className="page-pad reading">
@@ -47,7 +49,11 @@ export default function ReviewLog() {
       <div className="bench-controls">
         <Tabs<Src> label="Source" variant="pill" value={src} onChange={setSrc} options={[{ value: "all", label: "All", badge: feedback.length }, { value: "case", label: "Oil checks" }, { value: "test_set", label: "Detection test" }]} />
         <button type="button" className="btn btn-secondary" onClick={download} disabled={!feedback.length}><Download size={14} /> Export JSON</button>
-        {canManage && <button type="button" className="btn btn-secondary" onClick={() => fileRef.current?.click()}><Upload size={14} /> Import JSON</button>}
+        {canManage && (
+          <button type="button" className="btn btn-secondary" disabled={importing} aria-busy={importing} onClick={() => fileRef.current?.click()}>
+            {importing ? <><Spinner size={14} /> Importing…</> : <><Upload size={14} /> Import JSON</>}
+          </button>
+        )}
         {canManage && <button type="button" className="btn btn-quiet" onClick={() => setConfirm(true)} disabled={!feedback.length}><Trash2 size={14} /> Clear log</button>}
         <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => e.target.files?.[0] && onImport(e.target.files[0])} />
       </div>

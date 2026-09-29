@@ -3,6 +3,7 @@ import { domMax, LazyMotion, MotionConfig } from "motion/react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { HashRouter, Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import RequireAuth from "./auth/RequireAuth";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { PageLoader } from "./components/loaders";
 import { EASE, m } from "./components/motion";
 import TopBar from "./shell/TopBar";
@@ -30,6 +31,8 @@ function loadingLabel(path: string): string {
   if (path === "/app/benchmark") return "Loading benchmark…";
   if (path === "/app/vessels") return "Loading vessels…";
   if (path === "/app/reviews") return "Loading review log…";
+  if (path === "/login") return "Opening sign in…";
+  if (path === "/") return "Loading OILENS…";
   return "Loading…";
 }
 
@@ -38,7 +41,7 @@ function loadingLabel(path: string): string {
  * On a page change, paint the loader first and build the new page two frames later, so the loader is on screen
  * while the work happens (its spin runs on the compositor and keeps moving). Then the page fades in.
  */
-function RouteFade() {
+function RouteFade({ fullscreen = false }: { fullscreen?: boolean }) {
   const { pathname } = useLocation();
   const [shown, setShown] = useState(pathname);
   useEffect(() => {
@@ -52,10 +55,12 @@ function RouteFade() {
       cancelAnimationFrame(r2);
     };
   }, [pathname, shown]);
-  if (pathname !== shown) return <PageLoader label={loadingLabel(pathname)} immediate />;
+  if (pathname !== shown) return <PageLoader label={loadingLabel(pathname)} immediate fullscreen={fullscreen} />;
   return (
     <m.div key={pathname} className="route-fade" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.24, ease: EASE }}>
-      <Outlet />
+      <ErrorBoundary>
+        <Outlet />
+      </ErrorBoundary>
     </m.div>
   );
 }
@@ -84,8 +89,11 @@ export default function App() {
           <HashRouter>
             <Suspense fallback={<PageLoader fullscreen />}>
               <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/login" element={<Login />} />
+                {/* Public pages switch with the same "loader first, then build" step, full screen. */}
+                <Route element={<RouteFade fullscreen />}>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                </Route>
                 <Route path="/app" element={<AppFrame />}>
                   <Route index element={<Console />} />
                   <Route path="cases" element={<Home />} />

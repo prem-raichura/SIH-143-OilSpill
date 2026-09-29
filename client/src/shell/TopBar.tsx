@@ -1,10 +1,10 @@
 import * as Popover from "@radix-ui/react-popover";
-import { BarChart3, BookOpen, ClipboardList, LogOut, Map, Menu, Moon, PlayCircle, Radar, ScanSearch, Ship, Sun, type LucideIcon } from "lucide-react";
+import { BarChart3, BookOpen, ClipboardList, LogOut, Map, Menu, PlayCircle, Radar, ScanSearch, Ship, type LucideIcon } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { ROLE_TEXT } from "../auth/accounts";
 import { canSeeShips, useSession } from "../auth/session";
-import { Tip } from "../components/ui";
-import { useTheme } from "../store/theme";
+import { Spinner, useBusyAction } from "../components/loaders";
+import ThemeToggle from "../components/ThemeToggle";
 import { useTour } from "../tour/GuidedTour";
 
 const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean; ships?: boolean }[] = [
@@ -24,8 +24,8 @@ export function Mark() {
 }
 
 export default function TopBar() {
-  const { theme, toggle } = useTheme();
   const { session, signOut } = useSession();
+  const [signingOut, runSignOut] = useBusyAction();
   const navigate = useNavigate();
   const nav = NAV.filter((n) => !n.ships || canSeeShips(session?.role));
   const initials = session ? session.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() : "";
@@ -67,11 +67,7 @@ export default function TopBar() {
             <PlayCircle size={15} strokeWidth={1.8} /> <span className="hide-sm">Take the tour</span>
           </button>
         )}
-        <Tip content={theme === "night" ? "Switch to light theme" : "Switch to dark theme"} side="bottom">
-          <button type="button" className="icon-btn theme-btn" onClick={toggle} aria-label={theme === "night" ? "Switch to light theme" : "Switch to dark theme"}>
-            {theme === "night" ? <Sun size={17} strokeWidth={1.8} /> : <Moon size={17} strokeWidth={1.8} />}
-          </button>
-        </Tip>
+        <ThemeToggle />
         {session && (
           <Popover.Root>
             <Popover.Trigger asChild>
@@ -99,8 +95,9 @@ export default function TopBar() {
                   <dd>{session.unit}</dd>
                 </dl>
                 <p className="t-label">{ROLE_TEXT[session.role].can}</p>
-                <button type="button" className="btn btn-secondary" onClick={() => { signOut(); navigate("/"); }}>
-                  <LogOut size={15} strokeWidth={1.8} /> Sign out
+                <button type="button" className="btn btn-secondary" disabled={signingOut} aria-busy={signingOut}
+                  onClick={() => runSignOut(() => { signOut(); navigate("/"); })}>
+                  {signingOut ? <><Spinner /> Signing out…</> : <><LogOut size={15} strokeWidth={1.8} /> Sign out</>}
                 </button>
               </Popover.Content>
             </Popover.Portal>

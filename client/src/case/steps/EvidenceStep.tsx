@@ -124,16 +124,18 @@ export default function EvidenceStep() {
             </p>
           </Section>
 
-          <Section title="Screening (all ships)">
-            <KV
-              rows={[
-                ["Drift-corrected distance to slick", fmtKm(cand.screening.d_km)],
-                ["Uncertainty (1 sigma)", fmtKm(cand.screening.sigma_km)],
-                ["Log-likelihood", cand.screening.log_likelihood.toFixed(2)],
-                ["Best-fit release", `${fmtClock(cand.best_fit_release_time)} (${fmtRel(-cand.best_fit_age_h)})`],
-              ]}
-            />
-          </Section>
+          {cand.screening && (
+            <Section title="Screening (all ships)">
+              <KV
+                rows={[
+                  ["Drift-corrected distance to slick", fmtKm(cand.screening.d_km)],
+                  ["Uncertainty (1 sigma)", fmtKm(cand.screening.sigma_km)],
+                  ["Log-likelihood", cand.screening.log_likelihood.toFixed(2)],
+                  ...(cand.best_fit_release_time ? ([["Best-fit release", `${fmtClock(cand.best_fit_release_time)} (${fmtRel(-cand.best_fit_age_h)})`]] as [string, string][]) : []),
+                ]}
+              />
+            </Section>
+          )}
 
           {cand.confirmation && (
             <Section title="Forward confirmation (top candidates)">
@@ -161,12 +163,12 @@ export default function EvidenceStep() {
           <Section title="Other checks">
             <KV
               rows={[
-                ["Length", cand.shape.length],
-                ["Direction", cand.shape.direction],
-                ["Reachable", cand.reachability.reachable ? "yes" : "no"],
-                ["Longest AIS gap", `${cand.reachability.max_gap_h.toFixed(1)} h`],
+                ...(cand.shape ? ([["Length", cand.shape.length], ["Direction", cand.shape.direction]] as [string, string][]) : []),
+                ...(cand.reachability
+                  ? ([["Reachable", cand.reachability.reachable ? "yes" : "no"], ["Longest AIS gap", `${cand.reachability.max_gap_h.toFixed(1)} h`]] as [string, string][])
+                  : []),
                 ["Radar match", cand.sar ? `${cand.sar.status} (radius ${Math.round(cand.sar.radius_km)} km)` : "none nearby"],
-                ["Release time vs image", `${hoursFrom(c.bundle.meta.t_image, cand.best_fit_release_time).toFixed(1)} h`],
+                ...(cand.best_fit_release_time ? ([["Release time vs image", `${hoursFrom(c.bundle.meta.t_image, cand.best_fit_release_time).toFixed(1)} h`]] as [string, string][]) : []),
               ]}
             />
           </Section>

@@ -3,6 +3,7 @@ import { useEffect, type MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import { useSession } from "../auth/session";
 import ChartPlate, { ChartKey } from "../brand/ChartPlate";
+import ThemeToggle from "../components/ThemeToggle";
 import { DotCIRows } from "../charts/charts";
 import { useBenchmark } from "../data/load";
 import { Mark } from "../shell/TopBar";
@@ -61,7 +62,10 @@ export default function Landing() {
           <a href="#proof" onClick={(e) => jump(e, "proof")}>Results</a>
           <a href="#data" onClick={(e) => jump(e, "data")}>Data sources</a>
         </nav>
-        <Link to={primary.to} className="btn btn-primary">{!session && <LogIn size={15} />} {primary.label}</Link>
+        <div className="landing-actions">
+          <ThemeToggle />
+          <Link to={primary.to} className="btn btn-primary">{!session && <LogIn size={15} />} {primary.label}</Link>
+        </div>
       </header>
 
       <section className="hero" aria-labelledby="hero-title">

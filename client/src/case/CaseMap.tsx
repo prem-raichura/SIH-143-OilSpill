@@ -19,6 +19,7 @@ import MapLegend, { type LegendGroup } from "../map/MapLegend";
 import { MapCanvas, type FitPadding, type MapHandle } from "../map/MapCanvas";
 import MapTooltip from "../map/MapTooltip";
 import { AnimatePresence, m, slideDown } from "../components/motion";
+import { Spinner, useBusyAction } from "../components/loaders";
 import OverviewMap from "../map/OverviewMap";
 import ScaleBar from "../map/ScaleBar";
 import { Swatch } from "../map/Swatch";
@@ -52,6 +53,7 @@ export default function CaseMap() {
   const [hover, setHover] = useState<Hover | null>(null);
   const [cursor, setCursor] = useState<LonLat | null>(null);
   const [measure, setMeasure] = useState<{ active: boolean; pts: LonLat[] }>({ active: false, pts: [] });
+  const [saving, runSave] = useBusyAction();
   const [identified, setIdentified] = useState<(Identified & { fit?: PickInfo["fit"] }) | null>(null);
   const [pin, setPin] = useState<LonLat | null>(null);
   const mapRef = useRef<MapHandle>(null);
@@ -171,14 +173,16 @@ export default function CaseMap() {
     ? `${fmtKmNm(distanceKm(measure.pts[0], measure.pts[1]))}, bearing ${Math.round(bearingDeg(measure.pts[0], measure.pts[1]))}°`
     : measure.active ? (measure.pts.length ? "Click the second point" : "Click the first point") : null;
 
-  const saveImage = () => {
-    const url = mapRef.current?.snapshot();
-    if (!url) return;
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${c.bundle.entry.id}-${ws.step}-map.png`;
-    a.click();
-  };
+  // Exporting the canvas takes a moment on large screens: show a spinner on the button first.
+  const saveImage = () =>
+    runSave(() => {
+      const url = mapRef.current?.snapshot();
+      if (!url) return;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${c.bundle.entry.id}-${ws.step}-map.png`;
+      a.click();
+    });
 
   // Legend: every layer that is on and available, grouped like the layers panel.
   const hasSar = Boolean(c.bundle.meta.satellite);
@@ -227,7 +231,7 @@ export default function CaseMap() {
     { key: "ship", label: "Centre on the selected ship", icon: <Crosshair size={16} />, onClick: () => ws.requestFit("selected"), disabled: !selected, disabledReason: "Select a ship first" }] as MapTool[]),
     { key: "measure", label: "Measure distance", icon: <Ruler size={16} />, onClick: () => setMeasure((m) => ({ active: !m.active, pts: [] })), pressed: measure.active },
     { key: "tilt", label: ws.tilt ? "Flat map" : "Tilt map (3D)", icon: <span style={{ fontSize: 11, fontWeight: 700 }}>3D</span>, onClick: () => ws.set({ tilt: !ws.tilt }), pressed: ws.tilt },
-    { key: "save", label: "Save map image", icon: <Camera size={16} />, onClick: saveImage },
+    { key: "save", label: saving ? "Saving map image…" : "Save map image", icon: saving ? <Spinner size={14} /> : <Camera size={16} />, onClick: saveImage, disabled: saving },
   ];
 
   return (
@@ -257,6 +261,7 @@ export default function CaseMap() {
       )}
       <AnimatePresence>
         {measureInfo && <m.div key="measure" className="map-banner num" {...slideDown}>{measureInfo} <span className="muted">(Esc to stop)</span></m.div>}
+        {saving && <m.div key="saving" className="map-banner" {...slideDown}><Spinner size={13} /> Saving map image…</m.div>}
       </AnimatePresence>
 
       <div className="map-tl">

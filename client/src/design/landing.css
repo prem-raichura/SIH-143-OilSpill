@@ -39,6 +39,11 @@
 .landing-nav a:hover {
   color: var(--accent);
 }
+.landing-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+}
 
 /* Hero: the chart fills it; the headline sits over the open sea on the left. */
 .hero {
@@ -579,6 +584,11 @@
   top: 20px;
   left: 20px;
 }
+.login-theme {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
 .login-form {
   width: 100%;
   max-width: 400px;
@@ -650,6 +660,12 @@
 .role-acc span:not(.role-icon) {
   color: var(--ink-2);
 }
+.role-hint {
+  margin: 2px 0 0;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--ink-3);
+}
 .role-acc:hover {
   background: var(--accent-soft);
   border-color: var(--accent);
@@ -660,7 +676,7 @@
   .landing-nav {
     display: none;
   }
-  .landing-bar .btn {
+  .landing-actions {
     margin-left: auto;
   }
   .hero {

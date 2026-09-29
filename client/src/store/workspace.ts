@@ -175,6 +175,8 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
     }
     set((s) => ({
       step,
+      // Evidence opens in the 3D scene (the ship's hypothesis on the sea); leaving it goes back to the map.
+      view: step === "evidence" ? "scene" : s.step === "evidence" && s.view === "scene" ? "map" : s.view,
       // Step presets fill in layers the user never touched; explicit user picks stick across steps.
       layers: { ...layersFor(step), ...s.touched },
       sarOpacity: SAR_OPACITY[step] ?? 0.9,

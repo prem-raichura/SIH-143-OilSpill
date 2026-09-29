@@ -33,7 +33,14 @@ export function buildVessels(ledger: Ledger, tracks: TrackFeature[], monitoring:
     ...(v.shortlist ?? []).map((s) => s.mmsi),
     ...(v.code === 4 ? (monitoring?.vessels ?? []).map((m) => m.mmsi) : []),
   ]);
-  const cands = new Map(ledger.candidates.map((c, i) => [c.mmsi, { c, i }]));
+  // Radar-only targets (a ship seen on the SAR image with no AIS) have no MMSI, track or screening:
+  // they are not ships of this list. The verdict reads them from the ledger directly.
+  const cands = new Map(
+    ledger.candidates
+      .map((c, i) => ({ c, i }))
+      .filter(({ c }) => c.mmsi != null && !(c as Candidate & { sar_only?: boolean }).sar_only)
+      .map(({ c, i }) => [c.mmsi, { c, i }] as const),
+  );
   const elim = new Map(ledger.eliminated.map((e) => [e.mmsi, e]));
   const whyNot = new Map(ledger.why_not.map((w) => [w.mmsi, w.text]));
 

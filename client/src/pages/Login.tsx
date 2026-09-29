@@ -4,6 +4,8 @@ import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { ACCOUNTS, ROLE_TEXT, type Role } from "../auth/accounts";
 import { useSession } from "../auth/session";
 import ChartPlate, { ChartKey } from "../brand/ChartPlate";
+import ThemeToggle from "../components/ThemeToggle";
+import { Spinner, useBusyAction } from "../components/loaders";
 import { Mark } from "../shell/TopBar";
 
 const ROLE_ICON: Record<Role, typeof Search> = { analyst: ScanSearch, investigator: Search, supervisor: ShieldCheck };
@@ -17,14 +19,18 @@ export default function Login() {
   const [show, setShow] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
+  const [busy, run] = useBusyAction();
   const next = params.get("next") || "/app";
   if (session) return <Navigate to={next} replace />;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    const r = signIn(userId, password);
-    if (r.ok) navigate(next, { replace: true });
-    else setError(r.message);
+    // Show "Signing in…" first: opening the console builds its map, which briefly blocks the screen.
+    run(() => {
+      const r = signIn(userId, password);
+      if (r.ok) navigate(next, { replace: true });
+      else setError(r.message);
+    });
   };
 
   return (
@@ -43,6 +49,7 @@ export default function Login() {
       </section>
       <section className="login-side">
         <Link to="/" className="btn btn-quiet login-back"><ArrowLeft size={15} /> Back to home</Link>
+        <div className="login-theme"><ThemeToggle /></div>
         <form className="login-form" onSubmit={submit} noValidate>
           <div className="login-head">
             <h1 className="t-page">Sign in</h1>
@@ -64,10 +71,12 @@ export default function Login() {
             </span>
           </label>
           {error && <p className="error-note" role="alert">{error}</p>}
-          <button ref={submitRef} type="submit" className="btn btn-primary btn-lg">Sign in</button>
+          <button ref={submitRef} type="submit" className="btn btn-primary btn-lg" disabled={busy} aria-busy={busy}>
+            {busy ? <><Spinner /> Signing in…</> : "Sign in"}
+          </button>
           <div className="login-roles" role="group" aria-labelledby="roles-title">
             <span className="t-label" id="roles-title">Sign in as</span>
-            {ACCOUNTS.map((a) => {
+            {[...ACCOUNTS].reverse().map((a) => {
               const I = ROLE_ICON[a.role];
               return (
                 <button key={a.role} type="button" className="role-acc"
@@ -78,6 +87,7 @@ export default function Login() {
                 </button>
               );
             })}
+            <p className="role-hint">* Click a user to fill in their user ID and password.</p>
           </div>
         </form>
       </section>

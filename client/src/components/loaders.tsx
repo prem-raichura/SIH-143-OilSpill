@@ -33,6 +33,40 @@ export function useDelayed(active: boolean, delay = 150, min = 350, startShown =
   return shown;
 }
 
+/** Small orbit ring for buttons and inline waits. */
+export function Spinner({ size = 15 }: { size?: number }) {
+  return <span className="spinner" style={{ width: size, height: size }} aria-hidden="true" />;
+}
+
+/**
+ * Button actions that block the screen (sign in, sign out, file import, image export):
+ * `busy` turns on first so the button can show a spinner, then the action runs after the next paint.
+ */
+export function useBusyAction(): [boolean, (fn: () => unknown) => void] {
+  const [busy, setBusy] = useState(false);
+  const live = useRef(true);
+  useEffect(() => {
+    live.current = true;
+    return () => {
+      live.current = false;
+    };
+  }, []);
+  const run = (fn: () => unknown) => {
+    if (busy) return;
+    setBusy(true);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(async () => {
+        try {
+          await fn();
+        } finally {
+          if (live.current) setBusy(false);
+        }
+      }),
+    );
+  };
+  return [busy, run];
+}
+
 export function LogoLoader({ label, size = "lg" }: { label?: string; size?: "lg" | "md" | "sm" }) {
   return (
     <div className={`logo-loader ll-${size}`} role="status" aria-live="polite">
@@ -51,14 +85,14 @@ export function LogoLoader({ label, size = "lg" }: { label?: string; size?: "lg"
 }
 
 /** Loader that fills its container (a route or a whole page). */
-export function PageLoader({ label = "Loading…", fullscreen = false, immediate = false }: { label?: string; fullscreen?: boolean; immediate?: boolean }) {
+export function PageLoader({ label, fullscreen = false, immediate = false }: { label?: string; fullscreen?: boolean; immediate?: boolean }) {
   const shown = useDelayed(true, 120);
   // Full-screen takes over from the boot loader in index.html: show at once, no fade, so there is no blank frame.
   // `immediate`: page switches, where the loader must be on screen in the very next paint.
   if (fullscreen || immediate) {
     return (
       <div className={`page-loader${fullscreen ? " fullscreen" : ""}`}>
-        <LogoLoader label={fullscreen ? undefined : label} />
+        <LogoLoader label={fullscreen ? label : label ?? "Loading…"} />
       </div>
     );
   }
@@ -67,7 +101,7 @@ export function PageLoader({ label = "Loading…", fullscreen = false, immediate
       <AnimatePresence>
         {shown && (
           <m.div key="l" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: DUR.base, ease: EASE }}>
-            <LogoLoader label={label} />
+            <LogoLoader label={label ?? "Loading…"} />
           </m.div>
         )}
       </AnimatePresence>
