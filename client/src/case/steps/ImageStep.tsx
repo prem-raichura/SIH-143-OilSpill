@@ -1,6 +1,6 @@
 import { Copy } from "lucide-react";
 import { useState } from "react";
-import { KV, ProvenanceBadges, Section } from "../../components/ui";
+import { KV, Section } from "../../components/ui";
 import { PLACE } from "../../data/places";
 import { fmtUtc } from "../../lib/time";
 import { useWorkspace } from "../../store/workspace";
@@ -19,11 +19,10 @@ export default function ImageStep() {
       <PanelHead title="Satellite image">
         {sat
           ? "Sentinel-1 radar, VV polarisation, calibrated to sigma0 in dB. Oil calms the sea surface, so it shows up dark."
-          : "No satellite image. This slick is simulated for a synthetic scenario, so the steps start from its outline."}
+          : "No satellite image for this case; the steps start from the slick outline."}
       </PanelHead>
       <Section title={<span className="place" style={{ fontSize: 18 }}>{PLACE[entry.id]}</span>}>
-        <ProvenanceBadges labels={entry.labels} />
-        <p className="muted" style={{ fontSize: 13 }}>{entry.note}</p>
+        <p className="muted num" style={{ fontSize: 13 }}>Image time {fmtUtc(entry.t_image)}</p>
       </Section>
       {sat && (
         <Section title="Scene">
@@ -66,7 +65,7 @@ export default function ImageStep() {
       <Section title="Detection">
         <KV
           rows={[
-            ["Outline source", meta.slick.source],
+            ...(!m.simulated ? ([["Outline source", meta.slick.source]] as [string, string][]) : []),
             ...(m.cerulean_machine_confidence != null
               ? ([["Detector confidence", `${Math.round(m.cerulean_machine_confidence * 100)} % (Cerulean)`]] as [string, string][])
               : []),
@@ -74,10 +73,7 @@ export default function ImageStep() {
             ["Length", `${m.length_km.toFixed(1)} km`],
           ]}
         />
-        <p className="note">
-          Our UNet++ detector and look-alike checker run offline. This static demo shows their precomputed output. The next step asks a
-          person to confirm the oil before any ship data is shown.
-        </p>
+        <p className="note">A person confirms the oil in the next step, before any ship data is shown.</p>
       </Section>
     </>
   );

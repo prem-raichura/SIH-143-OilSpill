@@ -6,7 +6,7 @@ import LayerRail from "../case/LayerRail";
 import StepPanel, { stepAllowed } from "../case/StepPanel";
 import TimelineDock from "../case/TimelineDock";
 import { CaseCtx, useCaseDerived } from "../case/useCase";
-import { ErrorNote, Loading, ProvenanceBadges, Tabs, Tip, VerdictChip } from "../components/ui";
+import { ErrorNote, Loading, Segmented, Tip, VerdictChip } from "../components/ui";
 import { useCaseBundle } from "../data/load";
 import { PLACE } from "../data/places";
 import { fmtUtc } from "../lib/time";
@@ -59,23 +59,34 @@ export default function CasePage() {
   if (!c) return <div className="page-pad"><Loading lines={6} /></div>;
 
   const { entry } = c.bundle;
+  const railShown = ws.view === "map" && ws.railOpen;
   return (
     <CaseCtx.Provider value={c}>
       <div className="ws">
         <nav className="skip-links" aria-label="Skip links">
-          <a href="#step-panel" onClick={(e) => { e.preventDefault(); document.getElementById("step-panel")?.focus(); }}>Skip to step details</a>
+          <a href="#step-panel" onClick={(e) => { e.preventDefault(); if (!ws.panelOpen) ws.set({ panelOpen: true }); document.getElementById("step-panel")?.focus(); }}>Skip to step details</a>
           <a href="#case-map" onClick={(e) => { e.preventDefault(); (document.querySelector("#case-map canvas")?.parentElement as HTMLElement | null)?.focus(); }}>Skip to the map</a>
           <a href="#timeline" onClick={(e) => { e.preventDefault(); (document.querySelector("#timeline svg") as HTMLElement | null)?.focus(); }}>Skip to the timeline</a>
         </nav>
         <header className="ws-head">
           <Link to="/app/cases" className="back"><ChevronLeft size={15} /> Cases</Link>
           <div className="ws-title">
+            <h1 className="place">{PLACE[entry.id]}</h1>
             <span className="id num">{entry.id}</span>
-            <span className="place">{PLACE[entry.id]}</span>
             <span className="when">{fmtUtc(entry.t_image)}</span>
           </div>
-          <ProvenanceBadges labels={entry.labels} />
           <div className="ws-head-right">
+            <Segmented<View>
+              label="View"
+              size="sm"
+              value={ws.view}
+              onChange={ws.setView}
+              options={[
+                { value: "map", label: <><MapIcon size={14} strokeWidth={1.8} /> Map</> },
+                { value: "scene", label: <><Box size={14} strokeWidth={1.8} /> 3D scene</>, title: "Illustration built from the case data, not evidence" },
+                { value: "cube", label: <><Clock3 size={14} strokeWidth={1.8} /> Space-time cube</>, title: "Time runs upward: the image sits on top" },
+              ]}
+            />
             {c.analyst ? (
               <span className="t-label">Analyst view: oil review only</span>
             ) : c.gate ? (
@@ -111,33 +122,16 @@ export default function CasePage() {
             });
           })()}
         </nav>
-        <div className={`ws-body${ws.railOpen ? "" : " rail-closed"}`}>
-          <LayerRail />
-          <section className="ws-center" id="case-map" aria-label="Map and 3D views">
-            <div className="view-tabs">
-              <Tabs<View>
-                label="View"
-                value={ws.view}
-                onChange={ws.setView}
-                options={[
-                  { value: "map", label: "Map", icon: <MapIcon size={15} strokeWidth={1.8} /> },
-                  { value: "scene", label: "3D scene", icon: <Box size={15} strokeWidth={1.8} /> },
-                  { value: "cube", label: "Space-time cube", icon: <Clock3 size={15} strokeWidth={1.8} /> },
-                ]}
-              />
-              <span className="view-tabs-hint t-label">
-                {ws.view === "map" ? "GIS map: layers on the left, click any feature for details" : ws.view === "scene" ? "Illustration built from the case data, not evidence" : "Time runs upward: the image sits on top"}
-              </span>
-            </div>
-            <div className="view-body">
-              {ws.view === "map" && <CaseMap />}
-              {ws.view !== "map" && (
-                <Suspense fallback={<div className="page-pad"><Loading lines={3} /></div>}>
-                  {ws.view === "scene" ? <OceanScene /> : <SpaceTimeCube />}
-                </Suspense>
-              )}
-            </div>
+        <div className={`ws-stage${ws.panelOpen ? " panel-open" : ""}${railShown ? " rail-open" : ""}`}>
+          <section className="ws-view" id="case-map" aria-label={ws.view === "map" ? "Map" : ws.view === "scene" ? "3D scene" : "Space-time cube"}>
+            {ws.view === "map" && <CaseMap />}
+            {ws.view !== "map" && (
+              <Suspense fallback={<div className="page-pad"><Loading lines={3} /></div>}>
+                {ws.view === "scene" ? <OceanScene /> : <SpaceTimeCube />}
+              </Suspense>
+            )}
           </section>
+          {railShown && <LayerRail />}
           <StepPanel />
         </div>
         {ws.step !== "oil" && <TimelineDock />}

@@ -1,10 +1,10 @@
-// Forecast verification (plan F-45): the operator records what was observed; the app computes the result.
+// Forecast verification: the operator records what was observed; the app computes the result.
 import { Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Section, SyntheticBadge } from "../components/ui";
-import type { Feature, LonLat, PolygonGeometry } from "../data/types";
-import { destination, distanceKm, fmtKm, fmtLonLat, inGeometry } from "../lib/geo";
-import { fmtUtc, hoursFrom, isoAt } from "../lib/time";
+import { Section } from "../components/ui";
+import type { Feature, PolygonGeometry } from "../data/types";
+import { distanceKm, fmtKm, fmtLonLat, inGeometry } from "../lib/geo";
+import { fmtUtc, hoursFrom } from "../lib/time";
 import { useReview, type ForecastObservation } from "../store/review";
 import type { CaseDerived } from "./useCase";
 
@@ -50,13 +50,6 @@ export default function ForecastVerification({ c }: { c: CaseDerived }) {
     setForm((f) => ({ ...f, note: "" }));
   };
 
-  const example = () => {
-    if (!c.fwd) return;
-    const i = Math.min(c.fwd.mean.length - 1, 24);
-    const p: LonLat = destination(c.fwd.mean[i], 90, 0.3);
-    add({ caseId: c.bundle.entry.id, source: "aircraft", observedAt: isoAt(c.bundle.meta.t_image, 24), lonlat: p, oilSeen: true, searchedRadiusKm: 10, note: "Synthetic example: a patrol aircraft reports oil next to the forecast centre.", synthetic: true });
-  };
-
   return (
     <Section title="Check the forecast against observations">
       <p className="muted" style={{ fontSize: 13 }}>
@@ -68,7 +61,6 @@ export default function ForecastVerification({ c }: { c: CaseDerived }) {
           <div key={o.id} className={`obs obs-${r.tone}`}>
             <header>
               <b>{r.label}</b>
-              {o.synthetic && <SyntheticBadge>Synthetic example</SyntheticBadge>}
               <button type="button" className="icon-btn" aria-label="Remove observation" onClick={() => remove(o.id)}><Trash2 size={14} /></button>
             </header>
             <span className="t-label num">{o.source}, {fmtUtc(o.observedAt)}, {fmtLonLat(o.lonlat)}, {o.oilSeen ? "oil seen" : "searched, none found"}</span>
@@ -93,9 +85,8 @@ export default function ForecastVerification({ c }: { c: CaseDerived }) {
       {err && <p className="error-note" role="alert">{err}</p>}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button type="button" className="btn btn-primary" onClick={submit}>Add observation</button>
-        <button type="button" className="btn btn-secondary" onClick={example} disabled={!c.fwd}>Add labelled synthetic example</button>
       </div>
-      <p className="note">"Searched, none found" is kept apart from "not searched". Performance is only reported in aggregate with case counts. Any model change is done offline, by people.</p>
+      <p className="note">"Searched, none found" is kept apart from "not searched". Performance is only reported in aggregate with case counts. Any model change is made by people, never automatically.</p>
     </Section>
   );
 }

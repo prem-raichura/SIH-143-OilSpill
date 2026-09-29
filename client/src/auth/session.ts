@@ -1,20 +1,25 @@
 import { create } from "zustand";
-import { DEMO_ACCOUNTS, type DemoAccount, type Role } from "./demoAccounts";
+import { ACCOUNTS, type Account, type Role } from "./accounts";
 
 const KEY = "oilspill.session";
 
 export interface Session {
-  email: string;
+  userId: string;
   name: string;
   role: Role;
   unit: string;
   since: string;
 }
 
+/** Restore the session of this tab. Anything that no longer matches a current account is dropped (sign in again). */
 function load(): Session | null {
   try {
     const raw = sessionStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as Session) : null;
+    if (!raw) return null;
+    const s = JSON.parse(raw) as Partial<Session>;
+    const acc = ACCOUNTS.find((a) => a.userId === s.userId);
+    if (!acc || !s.since) return null;
+    return { userId: acc.userId, name: acc.name, role: acc.role, unit: acc.unit, since: s.since };
   } catch {
     return null;
   }
@@ -22,17 +27,17 @@ function load(): Session | null {
 
 interface SessionState {
   session: Session | null;
-  signIn: (email: string, password: string) => { ok: true } | { ok: false; message: string };
+  signIn: (userId: string, password: string) => { ok: true } | { ok: false; message: string };
   signOut: () => void;
 }
 
 export const useSession = create<SessionState>((set) => ({
   session: load(),
-  signIn: (email, password) => {
-    const acc: DemoAccount | undefined = DEMO_ACCOUNTS.find((a) => a.email.toLowerCase() === email.trim().toLowerCase());
-    if (!acc) return { ok: false, message: "No demo account with that email. Use one of the demo account buttons." };
-    if (acc.password !== password) return { ok: false, message: "Wrong password for this demo account. The demo buttons fill it in for you." };
-    const session: Session = { email: acc.email, name: acc.name, role: acc.role, unit: acc.unit, since: new Date().toISOString() };
+  signIn: (userId, password) => {
+    const acc: Account | undefined = ACCOUNTS.find((a) => a.userId === userId.trim().toLowerCase());
+    if (!acc) return { ok: false, message: "No account with that user ID." };
+    if (acc.password !== password) return { ok: false, message: "Wrong password." };
+    const session: Session = { userId: acc.userId, name: acc.name, role: acc.role, unit: acc.unit, since: new Date().toISOString() };
     try {
       sessionStorage.setItem(KEY, JSON.stringify(session));
     } catch {

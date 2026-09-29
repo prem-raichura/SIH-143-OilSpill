@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ErrorNote, Loading, PageHeader, Tabs } from "../components/ui";
 import { fetchJson, useCasesIndex } from "../data/load";
-import { PLACE } from "../data/places";
+import { PLACE, REGION_LABEL, type Region } from "../data/places";
 import type { Ledger, Monitoring, TrackFeature, FeatureCollection } from "../data/types";
 import { buildVessels, type Role } from "../lib/vessels";
 import { canSeeShips, useSession } from "../auth/session";
@@ -12,14 +12,14 @@ interface Row {
   key: string;
   name: string;
   mmsi: number;
-  synthetic: boolean;
+  region: Region;
   checked: { caseId: string; role: Role }[];
 }
 
 export default function Vessels() {
   const index = useCasesIndex();
   const [rows, setRows] = useState<Row[] | null>(null);
-  const [tab, setTab] = useState<"real" | "synthetic">("synthetic");
+  const [tab, setTab] = useState<Region>("india");
   const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function Vessels() {
         for (const v of vs) {
           if (v.role === "background") continue; // out of scope or unscored: not counted as an investigation
           const key = `${v.mmsi}`;
-          const r = m.get(key) ?? { key, name: v.name, mmsi: v.mmsi, synthetic: v.synthetic, checked: [] };
+          const r = m.get(key) ?? { key, name: v.name, mmsi: v.mmsi, region: c.region, checked: [] };
           r.checked.push({ caseId: c.id, role: v.role });
           m.set(key, r);
         }
@@ -54,7 +54,7 @@ export default function Vessels() {
   }, [index.data]);
 
   const role = useSession((s) => s.session?.role);
-  const list = useMemo(() => (rows ?? []).filter((r) => (tab === "real" ? !r.synthetic : r.synthetic)), [rows, tab]);
+  const list = useMemo(() => (rows ?? []).filter((r) => r.region === tab), [rows, tab]);
   if (!canSeeShips(role)) return <div className="page-pad">Vessel history is for investigators and supervisors. Analysts review oil only, so reviews stay free of ship bias.</div>;
   if (index.error) return <div className="page-pad"><ErrorNote error={index.error} /></div>;
   if (!rows) return <div className="page-pad"><Loading /></div>;
@@ -68,8 +68,8 @@ export default function Vessels() {
         checked in; busy ships appear more often simply because they are nearby more often. No risk score is calculated.
       </p>
       <div className="bench-controls">
-        <Tabs label="Data" variant="pill" value={tab} onChange={setTab} options={[{ value: "synthetic", label: "Synthetic ships" }, { value: "real", label: "Real ships (US AIS)" }]} />
-        <span className="t-label">Real and synthetic records are never mixed. Demo data only; a real deployment restricts this page to authorised users.</span>
+        <Tabs<Region> label="Region" variant="pill" value={tab} onChange={setTab} options={[{ value: "india", label: REGION_LABEL.india }, { value: "gulf_of_mexico", label: REGION_LABEL.gulf_of_mexico }]} />
+        <span className="t-label">Access is limited to authorised investigators.</span>
       </div>
       <div className="table-wrap">
         <table className="table">

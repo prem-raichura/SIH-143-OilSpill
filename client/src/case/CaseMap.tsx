@@ -1,7 +1,7 @@
 import type { PickingInfo, WebMercatorViewport } from "@deck.gl/core";
 import { CompositeLayer } from "@deck.gl/core";
 import { PathLayer, ScatterplotLayer } from "@deck.gl/layers";
-import { Camera, Crosshair, Minus, Navigation, Plus, Ruler, Ship, Target, Waves } from "lucide-react";
+import { Camera, Crosshair, Layers, Navigation, Ruler, Ship, Waves } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShared } from "../data/load";
 import type { Bounds, LonLat } from "../data/types";
@@ -14,11 +14,14 @@ import { buildCaseLayers, prepareStatic, withOpacity } from "../map/caseLayers";
 import GoTo from "../map/GoTo";
 import IdentifyPanel, { type Identified } from "../map/IdentifyPanel";
 import { basemapDef, basemapLayers } from "../map/layers/basemap";
+import MapControls, { type MapTool } from "../map/MapControls";
 import MapLegend, { type LegendGroup } from "../map/MapLegend";
-import { MapCanvas, type MapHandle } from "../map/MapCanvas";
+import { MapCanvas, type FitPadding, type MapHandle } from "../map/MapCanvas";
+import MapTooltip from "../map/MapTooltip";
 import OverviewMap from "../map/OverviewMap";
 import ScaleBar from "../map/ScaleBar";
 import { Swatch } from "../map/Swatch";
+import { NARROW, useMedia } from "../lib/useMedia";
 import { useClock } from "../store/clock";
 import { useMapPrefs } from "../store/mapPrefs";
 import { useTheme } from "../store/theme";
@@ -26,7 +29,6 @@ import { LAYERS, useWorkspace, type LayerId } from "../store/workspace";
 import { useReview } from "../store/review";
 import { describePick, type PickInfo } from "./describePick";
 import { useCase } from "./useCase";
-import { Tip } from "../components/ui";
 
 interface Hover {
   x: number;
@@ -42,7 +44,8 @@ export default function CaseMap() {
   const P = PALETTES[theme];
   const h = useClock((s) => s.h);
   const ws = useWorkspace();
-  const basemap = useMapPrefs((s) => s.basemap);
+  const { basemap, advanced } = useMapPrefs();
+  const narrow = useMedia(NARROW);
   const shared = useShared(c.bundle.meta.region);
   const [vp, setVp] = useState<WebMercatorViewport | null>(null);
   const [hover, setHover] = useState<Hover | null>(null);
@@ -179,10 +182,12 @@ export default function CaseMap() {
   // Legend: every layer that is on and available, grouped like the layers panel.
   const hasSar = Boolean(c.bundle.meta.satellite);
   const legend: LegendGroup[] = [];
+  let layersOn = 0;
   for (const l of LAYERS) {
     if (!ws.layers[l.id]) continue;
     if (l.ships && !c.shipsUnlocked) continue;
     if ((l.id === "sar" || l.id === "targets") && !hasSar) continue;
+    layersOn++;
     if (l.id === "graticule") continue;
     let g = legend.find((x) => x.title === l.group);
     if (!g) legend.push((g = { title: l.group, items: [] }));
@@ -207,6 +212,23 @@ export default function CaseMap() {
       }
     : undefined;
 
+  // Keep the data clear of the panels floating over the map (same sizes as the CSS in app.css).
+  const W = vp?.width ?? 1200;
+  const H = vp?.height ?? 700;
+  const padding: FitPadding = narrow
+    ? { top: 64, right: 24, bottom: (ws.panelOpen ? H * 0.5 : 60) + 40, left: 24 }
+    : { top: 64, right: (ws.panelOpen ? Math.min(400, W * 0.42) + 12 : 0) + 64, bottom: 56, left: (ws.railOpen ? 312 : 0) + 32 };
+
+  const tools: MapTool[] = [
+    { key: "north", label: "North up", icon: <Navigation size={16} />, onClick: () => mapRef.current?.resetNorth() },
+    { key: "fit-drift", label: "Show release area and forecast", icon: <Waves size={16} />, onClick: () => ws.requestFit("drift") },
+    { key: "fit-ships", label: "Show all ships", icon: <Ship size={16} />, onClick: () => ws.requestFit("ships"), disabled: !c.shipsUnlocked, disabledReason: "Decide on the oil check first" },
+    { key: "ship", label: "Centre on the selected ship", icon: <Crosshair size={16} />, onClick: () => ws.requestFit("selected"), disabled: !selected, disabledReason: "Select a ship first" },
+    { key: "measure", label: "Measure distance", icon: <Ruler size={16} />, onClick: () => setMeasure((m) => ({ active: !m.active, pts: [] })), pressed: measure.active },
+    { key: "tilt", label: ws.tilt ? "Flat map" : "Tilt map (3D)", icon: <span style={{ fontSize: 11, fontWeight: 700 }}>3D</span>, onClick: () => ws.set({ tilt: !ws.tilt }), pressed: ws.tilt },
+    { key: "save", label: "Save map image", icon: <Camera size={16} />, onClick: saveImage },
+  ];
+
   return (
     <MapCanvas
       ref={mapRef}
@@ -216,68 +238,66 @@ export default function CaseMap() {
         ...(measure.pts.length ? [measureLayer(measure.pts, P.focus)] : []),
         ...(pin ? [pinLayer(pin, P.focus, P.ink)] : []),
       ]}
-      fit={{ bounds: fitBounds, key: `${c.bundle.entry.id}:${ws.fitRequest.n}`, padding: 56, maxZoom: 11.5 }}
+      fit={{ bounds: fitBounds, key: `${c.bundle.entry.id}:${ws.fitRequest.n}`, padding, maxZoom: 11.5 }}
       onHover={onHover}
       onClick={onClick}
       onViewport={setVp}
       pitch={ws.tilt ? 50 : 0}
       cursor={measure.active ? "crosshair" : undefined}
     >
-      <ChartFrame vp={vp} bottomInset={30} />
+      {advanced && <ChartFrame vp={vp} bottomInset={30} />}
       {hover && (
-        <div className="map-tooltip" style={{ left: hover.x, top: hover.y }}>
+        <MapTooltip x={hover.x} y={hover.y} width={W} height={H}>
           <b>{hover.info.title}</b>
           {hover.info.subtitle && <div className="muted">{hover.info.subtitle}</div>}
           {hover.info.rows.slice(0, 2).map(([k, v]) => <div key={k} className="num">{k}: {v}</div>)}
           <div className="tooltip-hint">Click for details</div>
-        </div>
+        </MapTooltip>
       )}
       {measureInfo && <div className="map-banner num">{measureInfo} <span className="muted">(Esc to stop)</span></div>}
 
       <div className="map-tl">
+        <button type="button" className="map-chip layers-chip" aria-pressed={ws.railOpen} onClick={() => ws.set({ railOpen: !ws.railOpen })}>
+          <Layers size={15} strokeWidth={1.9} aria-hidden="true" />
+          <span>Layers</span>
+          <span className="chip-count num" aria-label={`${layersOn} on`}>{layersOn}</span>
+        </button>
         <BasemapSwitcher />
-        <GoTo
-          active={Boolean(pin)}
-          onGo={(p) => { setPin(p); mapRef.current?.flyTo(p[0], p[1], Math.max(vp?.zoom ?? 7, 8)); }}
-          onClear={() => setPin(null)}
-        />
+        {advanced && (
+          <GoTo
+            active={Boolean(pin)}
+            onGo={(p) => { setPin(p); mapRef.current?.flyTo(p[0], p[1], Math.max(vp?.zoom ?? 7, 8)); }}
+            onClear={() => setPin(null)}
+          />
+        )}
       </div>
 
       <div className="map-tr">
         {identified && <IdentifyPanel item={identified} decimal={ws.decimalCoords} onClose={() => setIdentified(null)} onZoom={zoomTo} />}
-        <div className="map-ctrls">
-          <div className="ctrl-group">
-            <Tip content="Zoom in" side="left"><button type="button" className="icon-btn" aria-label="Zoom in" onClick={() => mapRef.current?.zoomBy(1)}><Plus size={16} /></button></Tip>
-            <Tip content="Zoom out" side="left"><button type="button" className="icon-btn" aria-label="Zoom out" onClick={() => mapRef.current?.zoomBy(-1)}><Minus size={16} /></button></Tip>
-            <Tip content="North up" side="left"><button type="button" className="icon-btn" aria-label="Reset north" onClick={() => mapRef.current?.resetNorth()}><Navigation size={16} /></button></Tip>
-          </div>
-          <div className="ctrl-group">
-            <Tip content="Fit slick" side="left"><button type="button" className="icon-btn" aria-label="Fit slick" onClick={() => ws.requestFit("slick")}><Target size={16} /></button></Tip>
-            <Tip content="Fit release corridor and forecast" side="left"><button type="button" className="icon-btn" aria-label="Fit corridor" onClick={() => ws.requestFit("drift")}><Waves size={16} /></button></Tip>
-            <Tip content={c.shipsUnlocked ? "Fit all ships" : "Decide on the oil check first"} side="left"><button type="button" className="icon-btn" aria-label="Fit ships" disabled={!c.shipsUnlocked} onClick={() => ws.requestFit("ships")}><Ship size={16} /></button></Tip>
-          </div>
-          <div className="ctrl-group">
-            <Tip content={ws.tilt ? "Flat map" : "Tilt map (3D)"} side="left"><button type="button" className="icon-btn" aria-pressed={ws.tilt} aria-label="Tilt map" onClick={() => ws.set({ tilt: !ws.tilt })}><span style={{ fontSize: 11, fontWeight: 700 }}>3D</span></button></Tip>
-            <Tip content="Measure distance" side="left"><button type="button" className="icon-btn" aria-pressed={measure.active} aria-label="Measure distance" onClick={() => setMeasure((m) => ({ active: !m.active, pts: [] }))}><Ruler size={16} /></button></Tip>
-            <Tip content="Save map image" side="left"><button type="button" className="icon-btn" aria-label="Save map image" onClick={saveImage}><Camera size={16} /></button></Tip>
-            <Tip content="Center on selected ship" side="left"><button type="button" className="icon-btn" aria-label="Center on selected ship" disabled={!selected} onClick={() => ws.requestFit("selected")}><Crosshair size={16} /></button></Tip>
-          </div>
-        </div>
       </div>
 
       <div className="map-bl">
         <MapLegend groups={legend} />
       </div>
       <div className="map-br">
-        <OverviewMap vp={vp} land={shared.land} onJump={(p) => mapRef.current?.flyTo(p[0], p[1])} />
+        {advanced && !narrow && <OverviewMap vp={vp} land={shared.land} onJump={(p) => mapRef.current?.flyTo(p[0], p[1])} />}
+        <MapControls
+          onZoomIn={() => mapRef.current?.zoomBy(1)}
+          onZoomOut={() => mapRef.current?.zoomBy(-1)}
+          onFit={() => ws.refit()}
+          fitLabel="Fit to this step"
+          tools={tools}
+        />
       </div>
 
       <div className="map-statusbar">
-        <button type="button" className="coord-readout" onClick={() => ws.set({ decimalCoords: !ws.decimalCoords })} title="Switch between degrees-minutes and decimal">
-          {cursor ? fmtLonLat(cursor, ws.decimalCoords) : "Move over the map"}
-        </button>
-        <ScaleBar vp={vp} />
-        <span className="status-zoom num" title="Zoom level">z {vp ? vp.zoom.toFixed(1) : "–"}</span>
+        {advanced && (
+          <button type="button" className="coord-readout" onClick={() => ws.set({ decimalCoords: !ws.decimalCoords })} title="Switch between degrees-minutes and decimal">
+            {cursor ? fmtLonLat(cursor, ws.decimalCoords) : "Move over the map"}
+          </button>
+        )}
+        <ScaleBar vp={vp} units={advanced ? "both" : "km"} />
+        {advanced && <span className="status-zoom num" title="Zoom level">z {vp ? vp.zoom.toFixed(1) : "–"}</span>}
         {attribution && <span className="attribution">{attribution}</span>}
       </div>
     </MapCanvas>

@@ -59,6 +59,10 @@ a {
   scrollbar-color: var(--line-strong) transparent;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .num {
   font-variant-numeric: tabular-nums;
 }
@@ -239,26 +243,6 @@ button.chip:hover {
   background: var(--accent-soft);
   color: var(--accent);
   border-color: var(--accent);
-}
-.badge {
-  display: inline-flex;
-  align-items: center;
-  height: 20px;
-  padding: 0 7px;
-  border-radius: var(--r-tag);
-  font-size: 11.5px;
-  font-weight: 560;
-  line-height: 1;
-  white-space: nowrap;
-}
-.badge-real {
-  background: var(--teal-soft);
-  color: var(--teal);
-  border: 1px solid color-mix(in srgb, var(--teal) 35%, transparent);
-}
-.badge-synthetic {
-  border: 1px dashed var(--ink-3);
-  color: var(--ink-2);
 }
 .verdict-chip {
   display: inline-flex;

@@ -1,5 +1,5 @@
-// Post-incident behaviour events from a shipped AIS track, using the same rules as
-// Dataset/build/b5_attribution.py monitoring(). Context only: never used for scoring.
+// Post-incident behaviour events from an AIS track, using the same rules as the
+// attribution pipeline's monitoring step. Context only: never used for scoring.
 import type { LonLat, MonitoringEvent } from "../data/types";
 import { distanceKm } from "./geo";
 import { isoAt } from "./time";

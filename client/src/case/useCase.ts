@@ -103,7 +103,7 @@ export function useCaseDerived(bundle: CaseBundle | undefined): CaseDerived | un
       back: routes.back,
       fwd: routes.fwd,
       gate,
-      // Analysts review oil only: they never see candidate ships (bias control, spec 2.2).
+      // Analysts review oil only: they never see candidate ships (bias control).
       shipsUnlocked: Boolean(gate) && gate!.label !== "lookalike" && canSeeShips(role),
       analyst: !canSeeShips(role),
       closedAtVerdict1: gate?.label === "lookalike",

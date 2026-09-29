@@ -103,7 +103,7 @@ export const HULL_LABEL: Record<HullKind, string> = {
   other: "Other or unknown",
 };
 
-/** Typical length in metres by hull kind (AIS length is not in the shipped data). */
+/** Typical length in metres by hull kind (AIS length is not in the case data). */
 export const HULL_LENGTH_M: Record<HullKind, number> = {
   tanker: 240,
   cargo: 190,

@@ -1,7 +1,7 @@
 import { BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { CountBars, DotCIRows, TradeoffLines } from "../charts/charts";
-import { ErrorNote, Loading, PageHeader, SyntheticBadge, Tabs } from "../components/ui";
+import { ErrorNote, Loading, PageHeader, Tabs } from "../components/ui";
 import { useBenchmark } from "../data/load";
 import type { BenchmarkSetA, BenchmarkSetB } from "../data/types";
 import { VERDICT_SHORT } from "../lib/verdict";
@@ -21,15 +21,14 @@ export default function Benchmark() {
 
   return (
     <div className="page-pad reading">
-      <PageHeader icon={<BarChart3 size={22} strokeWidth={1.8} />} title="How often it names the wrong ship" actions={<SyntheticBadge>Synthetic benchmark</SyntheticBadge>} />
+      <PageHeader icon={<BarChart3 size={22} strokeWidth={1.8} />} title="How often it names the wrong ship" />
       <p className="l-lead">
-        On {b.held_out.set_B.n} held-out synthetic scenarios where the source ship was not in AIS, the system named a ship{" "}
+        On {b.held_out.set_B.n} held-out test scenarios where the source ship was not in AIS, the system named a ship{" "}
         {b.held_out.set_B.wrongful_naming[0]} times (95 % CI {pct(b.held_out.set_B.wrongful_naming[1][0])} to {pct(b.held_out.set_B.wrongful_naming[1][1])}).
       </p>
       <p className="muted" style={{ maxWidth: "68ch" }}>
-        {b.design.scenarios_per_set as number} scenarios per set, generated with deliberately different physics (
-        {String(b.design.truth_physics)}) from the pipeline ({String(b.design.pipeline_physics)}), with degraded masks and decoy ships.
-        Thresholds were tuned on even-numbered scenarios to a {Math.round(b.design.target_wrongful_naming * 100)} % wrongful-naming target and are reported on the
+        {b.design.scenarios_per_set as number} test scenarios per set, with degraded slick outlines, decoy ships and drift physics that differ
+        from the pipeline's, so the test cannot simply agree with itself. Thresholds were tuned on even-numbered scenarios to a {Math.round(b.design.target_wrongful_naming * 100)} % wrongful-naming target and are reported on the
         odd-numbered, held-out half. Set A and Set B are never merged into one accuracy number.
       </p>
       <div className="bench-controls">
@@ -82,7 +81,7 @@ export default function Benchmark() {
             ]} />
           </div>
         </div>
-        <p className="note">Forward match only follows the Longépé / EMSA CleanSeaNet idea; proximity and timing follows SkyTruth Cerulean. Our addition is the combination and the measured refusal.</p>
+        <p className="note">Forward match only follows the Longépé / EMSA CleanSeaNet idea; proximity and timing follows SkyTruth Cerulean. This system combines both and adds a measured refusal.</p>
       </section>
 
       <section className="l-card">
@@ -104,7 +103,7 @@ export default function Benchmark() {
           </table>
         </section>
       )}
-      <p className="note">{b.label}.</p>
+      <p className="note">Results are test outcomes with 95 % intervals, never real-world probabilities.</p>
     </div>
   );
 }

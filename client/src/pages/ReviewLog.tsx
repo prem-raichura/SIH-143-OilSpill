@@ -41,8 +41,8 @@ export default function ReviewLog() {
     <div className="page-pad reading">
       <PageHeader icon={<ClipboardList size={22} strokeWidth={1.8} />} title="Review log" />
       <p className="muted" style={{ maxWidth: "70ch" }}>
-        Every oil check and detection-test answer, in the feedback format of the spec (section 12). These records feed a curated dataset for
-        periodic, offline retraining. Nothing retrains automatically, and test-set scenes never enter training. Stored in this browser only.
+        Every oil check and detection-test answer, ready to export for periodic model retraining. Records feed a curated dataset reviewed by
+        people. Nothing retrains automatically, and test-set scenes never enter training.
       </p>
       <div className="bench-controls">
         <Tabs<Src> label="Source" variant="pill" value={src} onChange={setSrc} options={[{ value: "all", label: "All", badge: feedback.length }, { value: "case", label: "Oil checks" }, { value: "test_set", label: "Detection test" }]} />
@@ -94,7 +94,7 @@ export default function ReviewLog() {
           <Dialog.Overlay className="dialog-overlay" />
           <Dialog.Content className="dialog" style={{ padding: 20, width: 420 }} aria-describedby={undefined}>
             <Dialog.Title className="t-panel">Clear the review log?</Dialog.Title>
-            <p className="muted" style={{ margin: "10px 0 16px" }}>This deletes every oil check, case review and record in this browser. Export first if you need them.</p>
+            <p className="muted" style={{ margin: "10px 0 16px" }}>This deletes every oil check, case review and record. Export first if you need them.</p>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
               <Dialog.Close className="btn btn-secondary">Keep the log</Dialog.Close>
               <button type="button" className="btn btn-primary" onClick={() => { clearAll(); setConfirm(false); setMsg("Review log cleared."); }}>Clear the log</button>

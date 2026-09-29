@@ -38,7 +38,6 @@ export function describePick(info: PickingInfo, c: CaseDerived, h: number): Pick
       rows.push(["Score", `${v.candidate.score.toFixed(2)}, ${v.candidate.band} band`]);
       rows.push(["Best-fit release", fmtSignedH(-v.candidate.best_fit_age_h)]);
     }
-    rows.push(["AIS", v.synthetic ? "Synthetic" : "Real"]);
     return { title: v.name, subtitle: ROLE_LABEL[v.role], rows, mmsi: v.mmsi, fit: "selected" };
   }
   if (o && id === "cone") {
@@ -64,7 +63,7 @@ export function describePick(info: PickingInfo, c: CaseDerived, h: number): Pick
     const m = c.bundle.meta.slick.measures;
     return {
       title: "Slick",
-      subtitle: m.simulated ? "Simulated slick" : `Outline from ${c.bundle.meta.slick.source}`,
+      subtitle: m.simulated ? "Slick outline" : `Outline from ${c.bundle.meta.slick.source}`,
       rows: [
         ["Area", `${m.area_km2.toFixed(1)} km²`],
         ["Length", fmtKm(m.length_km)],

@@ -3,6 +3,7 @@ import { useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type Po
 import { Tip } from "../components/ui";
 import { parseUtc, fmtRel, fmtUtc, hoursFrom } from "../lib/time";
 import { useClock } from "../store/clock";
+import { useMapPrefs } from "../store/mapPrefs";
 import { useWorkspace } from "../store/workspace";
 import { useCase } from "./useCase";
 import { ROLE_ORDER } from "../lib/vessels";
@@ -13,6 +14,7 @@ export default function TimelineDock() {
   const c = useCase();
   const clock = useClock();
   const ws = useWorkspace();
+  const advanced = useMapPrefs((s) => s.advanced);
   const ref = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(600);
   const [lanesOpen, setLanesOpen] = useState(false);
@@ -41,9 +43,9 @@ export default function TimelineDock() {
   const ap = c.bundle.meta.slick.measures.age_prior_h;
   const tImage = c.bundle.meta.t_image;
   const laneH = 12;
-  const axisY = 44;
-  const lanesTop = 70;
-  const H = lanesOpen && lanes.length ? lanesTop + lanes.length * (laneH + 4) + 4 : 68;
+  const axisY = 30;
+  const lanesTop = 58;
+  const H = lanesOpen && lanes.length ? lanesTop + lanes.length * (laneH + 4) + 4 : 56;
 
   const drag = useRef(false);
   const setFromEvent = (e: PointerEvent<SVGSVGElement>) => {
@@ -75,17 +77,23 @@ export default function TimelineDock() {
           </button>
         </Tip>
         <Tip content="Forward 1 hour (Right arrow)"><button type="button" className="icon-btn" aria-label="Forward one hour" onClick={() => clock.step(1)}><SkipForward size={16} /></button></Tip>
-        <div className="segmented segmented-sm" role="radiogroup" aria-label="Playback speed" style={{ marginLeft: 6 }}>
-          {[1, 3, 6].map((s) => (
-            <button key={s} type="button" role="radio" aria-checked={Math.abs(clock.speed - s) < 0.01} onClick={() => clock.setSpeed(s)}>{s} h/s</button>
-          ))}
-        </div>
-        <Tip content="Go to image time (Home)"><button type="button" className="icon-btn" aria-label="Go to image time" onClick={() => clock.setH(0)}><Target size={16} /></button></Tip>
-        <Tip content={c.shipsUnlocked ? (lanesOpen ? "Hide ships on timeline" : "Show ships on timeline") : "Ships stay hidden until the oil check is answered"}>
-          <button type="button" className="icon-btn" aria-pressed={lanesOpen} aria-label="Ships on timeline" disabled={!c.shipsUnlocked} onClick={() => setLanesOpen((o) => !o)}>
-            {lanesOpen ? <ChevronsDown size={16} /> : <ChevronsUp size={16} />}
-          </button>
-        </Tip>
+        {advanced && (
+          <>
+            <div className="segmented segmented-sm" role="radiogroup" aria-label="Playback speed" style={{ marginLeft: 6 }}>
+              {[1, 3, 6].map((s) => (
+                <button key={s} type="button" role="radio" aria-checked={Math.abs(clock.speed - s) < 0.01} onClick={() => clock.setSpeed(s)}>{s} h/s</button>
+              ))}
+            </div>
+            <Tip content="Go to image time (Home)"><button type="button" className="icon-btn" aria-label="Go to image time" onClick={() => clock.setH(0)}><Target size={16} /></button></Tip>
+          </>
+        )}
+        {c.shipsUnlocked && (
+          <Tip content={lanesOpen ? "Hide ships on the timeline" : "Show ships on the timeline"}>
+            <button type="button" className="icon-btn" aria-pressed={lanesOpen} aria-label="Ships on the timeline" onClick={() => setLanesOpen((o) => !o)}>
+              {lanesOpen ? <ChevronsDown size={16} /> : <ChevronsUp size={16} />}
+            </button>
+          </Tip>
+        )}
       </div>
 
       <div className="tl" ref={ref} style={{ height: H }}>

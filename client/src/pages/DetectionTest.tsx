@@ -41,7 +41,7 @@ export default function DetectionTest() {
     <div className="page-pad reading">
       <PageHeader icon={<ScanSearch size={22} strokeWidth={1.8} />} title="Detection test" />
       <p className="muted" style={{ maxWidth: "68ch" }}>
-        {data.items.length} tiles from the official test set of the problem-statement dataset ({data.source.split(",")[0]}): 12 with oil, 12 look-alikes and 12 clean sea.
+        {data.items.length} labelled tiles from a public SAR oil-spill test set ({data.source.split(",")[0]}): 12 with oil, 12 look-alikes and 12 clean sea.
         Judge each tile yourself, then compare with the dataset label. Every answer goes to the review log.
       </p>
       <div className="bench-controls">

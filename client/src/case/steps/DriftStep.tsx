@@ -143,7 +143,7 @@ export default function DriftStep() {
               />
             </Section>
           )}
-          <p className="note">INCOIS OOSA already forecasts oil drift for India. This forecast keeps the pipeline self-contained; our addition is attribution.</p>
+          <p className="note">Complements the INCOIS OOSA oil-drift forecasts for Indian waters; this forecast keeps the investigation self-contained.</p>
           <ForecastVerification c={c} />
         </>
       )}
@@ -153,8 +153,7 @@ export default function DriftStep() {
             V<sub>oil</sub> = V<sub>current</sub> + V<sub>tide</sub> + V<sub>Stokes</sub> + α · V<sub>wind 10 m</sub>
           </div>
           <p>
-            One formula is used everywhere: backward runs, ship screening, forward confirmation, the forecast and the benchmark generator (which
-            deliberately uses different physics).
+            One formula is used everywhere: backward runs, ship screening, forward confirmation and the forecast.
           </p>
           <KV
             rows={[

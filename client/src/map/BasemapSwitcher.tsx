@@ -1,5 +1,5 @@
 import * as Popover from "@radix-ui/react-popover";
-import { Check, Layers } from "lucide-react";
+import { Check } from "lucide-react";
 import { useMapPrefs } from "../store/mapPrefs";
 import { BASEMAPS, basemapDef } from "./layers/basemap";
 
@@ -12,7 +12,6 @@ export default function BasemapSwitcher() {
       <Popover.Trigger asChild>
         <button type="button" className="map-chip basemap-btn" aria-label={`Basemap: ${cur.label}. Change basemap`}>
           <span className="bm-thumb" style={{ background: `linear-gradient(135deg, ${cur.preview[0]} 55%, ${cur.preview[1]} 55%)` }} aria-hidden="true" />
-          <Layers size={14} strokeWidth={1.8} aria-hidden="true" />
           <span>{cur.label}</span>
         </button>
       </Popover.Trigger>
@@ -30,7 +29,7 @@ export default function BasemapSwitcher() {
               </button>
             ))}
           </div>
-          <p className="t-label">Web basemaps need an internet connection. The chart works offline.</p>
+          <p className="t-label">Web basemaps need an internet connection. The chart works without one.</p>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

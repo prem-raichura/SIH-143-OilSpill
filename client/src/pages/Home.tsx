@@ -1,33 +1,32 @@
 import type { PickingInfo, WebMercatorViewport } from "@deck.gl/core";
 import { GeoJsonLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
 import { ChevronRight, Map as MapIcon } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ErrorNote, Loading, PageHeader, ProvenanceBadges, StatCard, Tabs, VerdictChip } from "../components/ui";
+import { ErrorNote, Loading, PageHeader, StatCard, Tabs, VerdictChip } from "../components/ui";
 import { dataUrl, fetchJson, useCasesIndex, useShared } from "../data/load";
-import { PLACE, REGION_LABEL } from "../data/places";
-import type { CaseIndexEntry, FeatureCollection, Meta, PolygonGeometry } from "../data/types";
-import { PALETTES, rgba } from "../design/palette";
+import { PLACE, REGION_BOUNDS, REGION_LABEL, type Region } from "../data/places";
+import type { CaseIndexEntry, FeatureCollection, Meta, PolygonGeometry, VerdictCode } from "../data/types";
+import { PALETTES, rgba, type Palette } from "../design/palette";
 import BasemapSwitcher from "../map/BasemapSwitcher";
 import ChartFrame, { graticuleLines } from "../map/ChartFrame";
 import { basemapDef, basemapLayers, FONT_SANS } from "../map/layers/basemap";
+import MapControls from "../map/MapControls";
 import MapLegend from "../map/MapLegend";
-import { MapCanvas } from "../map/MapCanvas";
+import { MapCanvas, type MapHandle } from "../map/MapCanvas";
 import { fmtUtc } from "../lib/time";
+import { VERDICT_SHORT } from "../lib/verdict";
 import { useMapPrefs } from "../store/mapPrefs";
+import { useReview } from "../store/review";
 import { useTheme } from "../store/theme";
-
-type Region = "india" | "gulf_of_mexico";
-const REGION_BOUNDS: Record<Region, [number, number, number, number]> = {
-  india: [66, 6.5, 85, 22.5],
-  gulf_of_mexico: [-98, 23, -86, 31],
-};
 
 interface CaseGeo {
   entry: CaseIndexEntry;
   slick: FeatureCollection<PolygonGeometry>;
   meta: Meta;
 }
+
+const verdictColor = (P: Palette, code: VerdictCode) => P[`v${code}` as "v1"];
 
 export default function Home() {
   const index = useCasesIndex();
@@ -36,11 +35,14 @@ export default function Home() {
   const [hoverXY, setHoverXY] = useState<{ x: number; y: number } | null>(null);
   const [geos, setGeos] = useState<Record<string, CaseGeo>>({});
   const [vp, setVp] = useState<WebMercatorViewport | null>(null);
+  const [fitN, setFitN] = useState(0);
   const theme = useTheme((s) => s.theme);
   const P = PALETTES[theme];
   const shared = useShared(region);
-  const basemap = useMapPrefs((s) => s.basemap);
+  const { basemap, advanced } = useMapPrefs();
+  const gates = useReview((s) => s.gate);
   const navigate = useNavigate();
+  const mapRef = useRef<MapHandle>(null);
 
   useEffect(() => {
     if (!index.data) return;
@@ -65,21 +67,20 @@ export default function Home() {
     return {
       india: all.filter((c) => c.region === "india").length,
       gulf_of_mexico: all.filter((c) => c.region === "gulf_of_mexico").length,
-      fullyReal: all.filter((c) => c.labels.some((l) => l.startsWith("REAL AIS"))).length,
-      realIndian: all.filter((c) => c.region === "india" && c.has_sar_image).length,
-      synthetic: all.filter((c) => !c.has_sar_image).length,
+      waiting: all.filter((c) => !gates[c.id]).length,
+      checked: all.filter((c) => gates[c.id]).length,
       total: all.length,
     };
-  }, [index.data]);
+  }, [index.data, gates]);
 
   const markerPos = (c: CaseIndexEntry): [number, number] => geos[c.id]?.meta.slick.measures.centroid ?? c.centroid;
 
   const base = basemapLayers({
     land: shared.land,
     eez: shared.eez,
-    graticule: graticuleLines(vp),
+    graticule: advanced ? graticuleLines(vp) : [],
     palette: P,
-    show: { eez: true, graticule: true },
+    show: { eez: true, graticule: advanced },
     region,
     zoom: vp?.zoom ?? 4,
     theme,
@@ -103,31 +104,31 @@ export default function Home() {
       id: "home-markers",
       data: cases,
       getPosition: markerPos,
-      getRadius: (c) => (c.id === hot ? 13 : 9),
+      getRadius: (c) => (c.id === hot ? 15 : 11),
       radiusUnits: "pixels",
       stroked: true,
       filled: true,
-      getFillColor: (c) => (c.id === hot ? rgba(P.accent, 0.3) : rgba(P.sea, 0.35)),
-      getLineColor: rgba(P.accent),
+      getFillColor: (c) => rgba(verdictColor(P, c.verdict.code), c.id === hot ? 1 : 0.88),
+      getLineColor: (c) => (c.id === hot ? rgba(P.ink) : rgba(theme === "night" ? P.sea : "#FFFFFF")),
       lineWidthUnits: "pixels",
-      getLineWidth: (c) => (c.id === hot ? 2.5 : 1.75),
+      getLineWidth: (c) => (c.id === hot ? 3 : 2.5),
       pickable: true,
-      updateTriggers: { getRadius: hot, getFillColor: [hot, theme], getLineWidth: hot, getLineColor: theme, getPosition: Object.keys(geos).length },
+      updateTriggers: { getRadius: hot, getFillColor: [hot, theme], getLineWidth: hot, getLineColor: [hot, theme], getPosition: Object.keys(geos).length },
       transitions: { getRadius: 150 },
     }),
     new TextLayer<CaseIndexEntry>({
       id: "home-labels",
       data: cases,
       getPosition: markerPos,
-      getText: (c) => c.id,
-      getSize: 12,
+      getText: (c) => PLACE[c.id] ?? c.id,
+      getSize: 13,
       getColor: rgba(P.ink),
       fontFamily: FONT_SANS,
       fontWeight: 600,
-      getPixelOffset: [14, 0],
+      getPixelOffset: [18, 0],
       getTextAnchor: "start",
       getAlignmentBaseline: "center",
-      outlineWidth: 3,
+      outlineWidth: 4,
       outlineColor: rgba(P.sea),
       fontSettings: { sdf: true },
       characterSet: "auto",
@@ -146,17 +147,20 @@ export default function Home() {
     }
   };
 
+  const W = vp?.width ?? 800;
+  const H = vp?.height ?? 600;
+  const attribution = basemapDef(basemap).attribution;
+
   return (
     <div className="home">
       <aside className="home-list" aria-label="Cases">
         <div className="home-intro">
           <PageHeader icon={<MapIcon size={22} strokeWidth={1.8} />} title="Cases" description="Pick a slick to investigate. Hover a case to find it on the map." />
           {index.data && (
-            <div className="stat-grid stat-grid-4">
+            <div className="stat-grid stat-grid-3">
               <StatCard value={counts.total} label="Cases" tone="accent" />
-              <StatCard value={counts.fullyReal} label="Fully real" sub="Gulf of Mexico" tone="teal" />
-              <StatCard value={counts.realIndian} label="Real slick" sub="Synthetic ships" />
-              <StatCard value={counts.synthetic} label="Synthetic" sub="Simulated scenario" />
+              <StatCard value={counts.waiting} label="Awaiting oil check" tone={counts.waiting ? "warn" : undefined} />
+              <StatCard value={counts.checked} label="Oil check done" tone="teal" />
             </div>
           )}
           <Tabs<Region>
@@ -189,13 +193,10 @@ export default function Home() {
                   <span className="id num">{c.id}</span>
                   <VerdictChip code={c.verdict.code} />
                 </span>
-                <span className="place">{PLACE[c.id] ?? c.note}</span>
+                <span className="place">{PLACE[c.id] ?? c.id}</span>
                 <span className="meta">
                   {fmtUtc(c.t_image)}
-                  {m ? ` · ${m.length_km.toFixed(0)} km slick` : ""}
-                </span>
-                <span className="badges">
-                  <ProvenanceBadges labels={c.labels} />
+                  {m ? `, ${m.length_km.toFixed(0)} km slick` : ""}
                   <ChevronRight size={16} className="case-go" aria-hidden="true" />
                 </span>
               </Link>
@@ -205,46 +206,64 @@ export default function Home() {
       </aside>
       <section className="home-map" aria-label="Case map">
         <MapCanvas
+          ref={mapRef}
           ariaLabel={`Map of ${REGION_LABEL[region]} with case locations`}
           layers={layers}
-          fit={{ bounds: REGION_BOUNDS[region], key: region, padding: 24 }}
+          fit={{ bounds: REGION_BOUNDS[region], key: `${region}:${fitN}`, padding: 32 }}
           onHover={onHover}
           onClick={(info) => {
             if (info.layer?.id === "home-markers" && info.object) navigate(`/app/case/${(info.object as CaseIndexEntry).id}`);
           }}
           onViewport={setVp}
         >
-          <ChartFrame vp={vp} bottomInset={30} />
+          {advanced && <ChartFrame vp={vp} bottomInset={30} />}
           <div className="map-tl"><BasemapSwitcher /></div>
           <div className="map-bl">
             <MapLegend
-              groups={[{
-                title: "Map",
-                items: [
-                  { key: "case", swatch: <svg width="20" height="14" aria-hidden="true"><circle cx="10" cy="7" r="5" fill="none" stroke="var(--accent)" strokeWidth="1.8" /></svg>, label: "Case (click to open)" },
-                  { key: "slick", swatch: <svg width="20" height="14" aria-hidden="true"><path d="M2 10c4-6 10-7 16-6-3 4-9 8-16 6z" fill="rgba(29,23,18,.5)" stroke="var(--past)" strokeWidth="1.5" /></svg>, label: "Slick outline" },
-                  { key: "eez", swatch: <svg width="20" height="14" aria-hidden="true"><path d="M1 7H19" stroke="var(--ink-2)" strokeDasharray="4 2" /></svg>, label: "EEZ boundary" },
-                ],
-              }]}
+              groups={[
+                {
+                  title: "Verdict",
+                  items: ([1, 2, 3, 4, 5] as VerdictCode[]).map((v) => ({
+                    key: `v${v}`,
+                    swatch: <svg width="20" height="14" aria-hidden="true"><circle cx="10" cy="7" r="5.5" fill={`var(--v${v})`} stroke="var(--panel)" strokeWidth="1.5" /></svg>,
+                    label: VERDICT_SHORT[v],
+                  })),
+                },
+                {
+                  title: "Map",
+                  items: [
+                    { key: "slick", swatch: <svg width="20" height="14" aria-hidden="true"><path d="M2 10c4-6 10-7 16-6-3 4-9 8-16 6z" fill="rgba(29,23,18,.5)" stroke="var(--past)" strokeWidth="1.5" /></svg>, label: "Slick outline" },
+                    { key: "eez", swatch: <svg width="20" height="14" aria-hidden="true"><path d="M1 7H19" stroke="var(--ink-2)" strokeDasharray="4 2" /></svg>, label: "EEZ boundary" },
+                  ],
+                },
+              ]}
+            />
+          </div>
+          <div className="map-br">
+            <MapControls
+              onZoomIn={() => mapRef.current?.zoomBy(1)}
+              onZoomOut={() => mapRef.current?.zoomBy(-1)}
+              onFit={() => setFitN((n) => n + 1)}
+              fitLabel={`Show all of ${REGION_LABEL[region]}`}
             />
           </div>
           <div className="map-statusbar">
-            <span>{REGION_LABEL[region]}: {cases.length} cases</span>
-            <span className="status-zoom num">z {vp ? vp.zoom.toFixed(1) : "–"}</span>
-            {basemapDef(basemap).attribution && <span className="attribution">{basemapDef(basemap).attribution}</span>}
+            <span>{REGION_LABEL[region]}: {cases.length} cases. Click a case to open it.</span>
+            {advanced && <span className="status-zoom num">z {vp ? vp.zoom.toFixed(1) : "–"}</span>}
+            {attribution && <span className="attribution">{attribution}</span>}
           </div>
           {hotCase && hoverXY && (
-            <div className="hover-card" style={{ left: Math.min(hoverXY.x + 16, (vp?.width ?? 800) - 250), top: Math.max(8, hoverXY.y - 170) }}>
+            <div className="hover-card" style={{ left: Math.max(8, Math.min(hoverXY.x + 16, W - 250)), top: Math.max(8, Math.min(hoverXY.y - 170, H - 250)) }}>
               {hotCase.entry.has_sar_image ? (
                 <img src={dataUrl(`${hotCase.entry.path}sar_quicklook.png`)} alt="" />
               ) : (
                 <div style={{ height: 60, display: "grid", placeItems: "center" }} className="muted">
-                  Simulated slick, no satellite image
+                  No satellite image
                 </div>
               )}
               <div className="body">
-                <b>{hotCase.entry.id}</b>
-                <span className="place" style={{ fontSize: 16 }}>{PLACE[hotCase.entry.id]}</span>
+                <b className="num">{hotCase.entry.id}</b>
+                <span className="place" style={{ fontSize: 17 }}>{PLACE[hotCase.entry.id]}</span>
                 <VerdictChip code={hotCase.entry.verdict.code} />
               </div>
             </div>

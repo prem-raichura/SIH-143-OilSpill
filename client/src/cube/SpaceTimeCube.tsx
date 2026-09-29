@@ -12,6 +12,7 @@ import { geometryRings, makeEnu } from "../lib/geo";
 import { fmtSignedH } from "../lib/time";
 import { ROLE_LABEL, type Role } from "../lib/vessels";
 import { FONT_SANS } from "../map/layers/basemap";
+import MapTooltip from "../map/MapTooltip";
 import { roleColor } from "../map/caseLayers";
 import { useClock } from "../store/clock";
 import { useTheme } from "../store/theme";
@@ -28,7 +29,7 @@ export default function SpaceTimeCube() {
   const h = useClock((s) => s.h);
   const [zs, setZs] = useState(1.2); // km per hour
   const [onlyKey, setOnlyKey] = useState(true);
-  const [hover, setHover] = useState<{ x: number; y: number; text: string } | null>(null);
+  const [hover, setHover] = useState<{ x: number; y: number; w: number; h: number; text: string } | null>(null);
   const ap = c.bundle.meta.slick.measures.age_prior_h;
 
   const geo = useMemo(() => {
@@ -201,7 +202,7 @@ export default function SpaceTimeCube() {
   const onHover = (info: PickingInfo) => {
     const o = info.object as { v?: { name: string; role: Role; mmsi: number }; p?: P3 } | undefined;
     if (!o?.v) return setHover(null);
-    setHover({ x: info.x, y: info.y, text: info.layer?.id === "cube-release" ? `${o.v.name}: best-fit release point` : `${o.v.name}, ${ROLE_LABEL[o.v.role].toLowerCase()}` });
+    setHover({ x: info.x, y: info.y, w: info.viewport?.width ?? 1200, h: info.viewport?.height ?? 800, text: info.layer?.id === "cube-release" ? `${o.v.name}: best-fit release point` : `${o.v.name}, ${ROLE_LABEL[o.v.role].toLowerCase()}` });
   };
 
   return (
@@ -219,9 +220,9 @@ export default function SpaceTimeCube() {
         }}
         getCursor={({ isDragging, isHovering }) => (isDragging ? "grabbing" : isHovering ? "pointer" : "grab")}
       />
-      {hover && <div className="map-tooltip" style={{ left: hover.x, top: hover.y }}>{hover.text}</div>}
-      <div className="cube-panel">
-        <b>Space-time cube</b>
+      {hover && <MapTooltip x={hover.x} y={hover.y} width={hover.w} height={hover.h}>{hover.text}</MapTooltip>}
+      <details className="cube-panel" open>
+        <summary><b>Space-time cube</b></summary>
         <p>Up is time: the slick at the image sits on top, where the oil was N hours earlier sits below it (magenta). Ship tracks climb with time. A track that passes through the oil's past at the same height is consistent with releasing it.</p>
         <label className="field">
           <span className="t-label">Vertical scale {zs.toFixed(1)} km per hour</span>
@@ -233,7 +234,7 @@ export default function SpaceTimeCube() {
         </label>
         {!c.shipsUnlocked && <p className="note">Ships appear after the oil check.</p>}
         <p className="t-label">Thin frame: the current timeline time. Highlighted track: the selected ship. Drag to rotate, scroll to zoom.</p>
-      </div>
+      </details>
     </div>
   );
 }

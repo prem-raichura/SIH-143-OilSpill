@@ -27,7 +27,7 @@ export interface BasemapDef {
 }
 
 export const BASEMAPS: BasemapDef[] = [
-  { id: "chart", label: "Chart", hint: "Offline, drawn from the case data", url: null, maxZoom: 16, attribution: null, preview: ["#D9E9F4", "#EFEBE0"] },
+  { id: "chart", label: "Chart", hint: "Drawn from coastline data; works without internet", url: null, maxZoom: 16, attribution: null, preview: ["#D9E9F4", "#EFEBE0"] },
   {
     id: "ocean", label: "Ocean", hint: "Bathymetry and coastlines", url: `${ESRI}/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}`, maxZoom: 13,
     attribution: "Basemap: Esri, GEBCO, NOAA, National Geographic, Garmin, HERE and other contributors", preview: ["#9FC8E3", "#E6E0CC"],

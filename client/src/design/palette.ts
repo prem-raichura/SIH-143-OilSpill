@@ -18,6 +18,12 @@ export interface Palette {
   focus: string;
   accent: string;
   teal: string;
+  /** Verdict colours 1 to 5 (same as the verdict chips). */
+  v1: string;
+  v2: string;
+  v3: string;
+  v4: string;
+  v5: string;
 }
 
 export const PALETTES: Record<ThemeName, Palette> = {
@@ -38,6 +44,11 @@ export const PALETTES: Record<ThemeName, Palette> = {
     focus: "#FFD84D",
     accent: "#3B9AF5",
     teal: "#2BC4B0",
+    v1: "#6D8591",
+    v2: "#F2A93B",
+    v3: "#EF6B67",
+    v4: "#3B9AF5",
+    v5: "#2BC4B0",
   },
   day: {
     sea: "#D9E9F4",
@@ -56,6 +67,11 @@ export const PALETTES: Record<ThemeName, Palette> = {
     focus: "#FFC928",
     accent: "#0B5FA5",
     teal: "#0E9F8E",
+    v1: "#8497A6",
+    v2: "#D98B00",
+    v3: "#D9534F",
+    v4: "#0B5FA5",
+    v5: "#0E9F8E",
   },
 };
 

@@ -57,7 +57,7 @@ export default function FollowUpStep() {
           const h = hoursFrom(tImage, e.t);
           return h >= 0 && h <= win;
         });
-        // No precomputed events: derive them from the shipped track with the same rules (marked as derived).
+        // No stored events: derive them from the AIS track with the same rules (marked as derived).
         if (!events.length && ti && fixes > 1) {
           events = behaviourEvents({ ti, tImage, windowH: win, ports: portPts, slick: c.slickRings.flat() });
         }
@@ -75,7 +75,7 @@ export default function FollowUpStep() {
         label="Follow-up window"
         value={win}
         onChange={(w) => ws.set({ followWindowH: w })}
-        options={[6, 12, 24, 48, 72].map((w) => ({ value: w, label: `${w} h`, disabled: w > 24, title: w > 24 ? "The shipped AIS covers 24 h after the image" : undefined }))}
+        options={[6, 12, 24, 48, 72].map((w) => ({ value: w, label: `${w} h`, disabled: w > 24, title: w > 24 ? "Available AIS covers 24 h after the image" : undefined }))}
       />
       <div style={{ display: "flex", gap: 8 }}>
         <button type="button" className="btn btn-primary" onClick={() => runTo(0, win, 5)}>Play the window</button>
@@ -97,7 +97,7 @@ export default function FollowUpStep() {
                 {events.map((e, i) => (
                   <li key={i}>
                     <span className="num t-label">{fmtUtc(e.t, false)}</span>
-                    <span><b>{EVENT_LABEL[e.type] ?? e.type}</b> {e.text}{e.derived ? " (derived from the shipped track)" : ""}</span>
+                    <span><b>{EVENT_LABEL[e.type] ?? e.type}</b> {e.text}{e.derived ? " (derived from the AIS track)" : ""}</span>
                   </li>
                 ))}
               </ol>
@@ -109,7 +109,7 @@ export default function FollowUpStep() {
         <p className="note">Port calls, loitering and course changes are ordinary for most ships. Watching only the suspect would make them look like confirmation, so all shortlisted ships get the same window.</p>
       </Section>
       <Section title="New oil sighting">
-        <p className="muted" style={{ fontSize: 13 }}>Only a new, independent oil observation can change attribution. It opens a linked incident that needs a full re-run of the offline pipeline.</p>
+        <p className="muted" style={{ fontSize: 13 }}>Only a new, independent oil observation can change attribution. It opens a linked incident that needs a full re-analysis.</p>
         <label className="field"><span className="t-label">Observed at (UTC)</span><input className="input" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} /></label>
         <label className="field"><span className="t-label">Where (place or coordinates)</span><input className="input" value={where} onChange={(e) => setWhere(e.target.value)} placeholder="e.g. 8°50′N 76°05′E" /></label>
         <label className="field"><span className="t-label">Note</span><textarea className="textarea" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Source: aircraft, vessel, next satellite pass" /></label>
@@ -119,7 +119,7 @@ export default function FollowUpStep() {
           void s;
         }}>Log sighting</button>
         {sightings.map((s) => (
-          <p key={s.id} className="note note-strong">Logged as linked incident {s.linkedId} ({s.where}, {s.observedAt.replace("T", " ")} UTC). A full offline re-run is needed; the original verdict stays.</p>
+          <p key={s.id} className="note note-strong">Logged as linked incident {s.linkedId} ({s.where}, {s.observedAt.replace("T", " ")} UTC). A full re-analysis is needed; the original verdict stays.</p>
         ))}
       </Section>
     </>

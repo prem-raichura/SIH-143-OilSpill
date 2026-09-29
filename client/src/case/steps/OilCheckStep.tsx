@@ -41,7 +41,7 @@ export default function OilCheckStep() {
     setGate({ caseId: entry.id, label, reason, note, at: new Date().toISOString(), blind, sawMaskFirst: !blind });
     addFeedback({
       incident_id: entry.id,
-      image_id: meta.satellite?.product_id ?? `${entry.id}-simulated`,
+      image_id: meta.satellite?.product_id ?? `${entry.id}-outline`,
       ai_prediction: "oil",
       ai_confidence: meta.slick.measures.cerulean_machine_confidence ?? null,
       human_label: label === "confirmed_oil" ? "CONFIRMED_OIL" : label === "lookalike" ? "LOOKALIKE" : "UNCERTAIN",
@@ -84,7 +84,7 @@ export default function OilCheckStep() {
             <button type="button" className="btn btn-secondary" onClick={() => clearGate(c.bundle.entry.id)}>Change decision</button>
           </div>
         </div>
-        <p className="note">Every decision is saved to the review log in this browser. Nothing retrains automatically.</p>
+        <p className="note">Every decision is saved to the review log. Nothing retrains automatically.</p>
       </>
     );
   }
@@ -128,7 +128,7 @@ export default function OilCheckStep() {
           <input type="checkbox" checked={blindMode} onChange={(e) => setBlindMode(e.target.checked)} />
         </label>
         <p className="note">
-          The stored analysis assumed "confirmed oil". Marking a look-alike here stops this case at verdict 1. Blind reviews measure how much
+          The analysis assumes "confirmed oil" until you answer. Marking a look-alike here stops this case at verdict 1. Blind reviews measure how much
           reviewers lean on the detector.
         </p>
       </Section>

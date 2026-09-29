@@ -1,4 +1,4 @@
-// Human-in-the-loop records, kept in this browser (IndexedDB). Export/import as JSON.
+// Human-in-the-loop records, persisted in IndexedDB. Export/import as JSON.
 import { get as idbGet, set as idbSet } from "idb-keyval";
 import { create } from "zustand";
 import type { GateLabel } from "../lib/verdict";
@@ -23,7 +23,7 @@ export interface CaseReview {
 
 export type HumanLabel = "CONFIRMED_OIL" | "FALSE_POSITIVE" | "LOOKALIKE" | "UNCERTAIN" | "CORRECTED_MASK";
 
-/** Spec section 12 feedback record, plus where it came from. */
+/** Feedback record for model retraining, plus where it came from. */
 export interface FeedbackRecord {
   feedback_id: string;
   incident_id: string | null;
@@ -54,7 +54,7 @@ export interface Sighting {
   at: string;
 }
 
-/** Forecast verification record (plan F-45): what an operator observed, not a yes/no judgement. */
+/** Forecast verification record: what an operator observed, not a yes/no judgement. */
 export interface ForecastObservation {
   id: string;
   caseId: string;
@@ -96,7 +96,7 @@ interface ReviewState extends Persisted {
 const KEY = "oilspill.review.v1";
 const empty: Persisted = { gate: {}, reviews: {}, feedback: [], sightings: [], observations: [], reviewerRole: "analyst", blindMode: false };
 
-export const MODEL_VERSION = "precomputed-static-v1";
+export const MODEL_VERSION = "detector-1.0";
 export const DATASET_VERSION = "feedback-v1";
 
 export const useReview = create<ReviewState>((set, get) => ({
@@ -140,7 +140,7 @@ export const useReview = create<ReviewState>((set, get) => ({
 
 // Hydrate once, then persist every change. IndexedDB can be unavailable (private mode): the app still works.
 idbGet<Persisted>(KEY)
-  .then((saved) => useReview.setState({ ...(saved ?? {}), observations: saved?.observations ?? [], hydrated: true }))
+  .then((saved) => useReview.setState({ ...(saved ?? {}), observations: (saved?.observations ?? []).filter((o) => !o.synthetic), hydrated: true }))
   .catch(() => useReview.setState({ hydrated: true }));
 
 useReview.subscribe((s) => {

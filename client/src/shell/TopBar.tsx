@@ -1,11 +1,11 @@
 import * as Popover from "@radix-ui/react-popover";
 import { BarChart3, BookOpen, ClipboardList, LogOut, Map, Menu, Moon, PlayCircle, Radar, ScanSearch, Ship, Sun, type LucideIcon } from "lucide-react";
-import { useDemo } from "../demo/GuidedDemo";
 import { NavLink, useNavigate } from "react-router-dom";
-import { ROLE_TEXT } from "../auth/demoAccounts";
+import { ROLE_TEXT } from "../auth/accounts";
 import { canSeeShips, useSession } from "../auth/session";
 import { Tip } from "../components/ui";
 import { useTheme } from "../store/theme";
+import { useTour } from "../tour/GuidedTour";
 
 const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean; ships?: boolean }[] = [
   { to: "/app", label: "Console", icon: Radar, end: true },
@@ -35,10 +35,9 @@ export default function TopBar() {
   const initials = session ? session.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() : "";
   return (
     <header className="topbar">
-      <NavLink to="/app" className="brand" aria-label="Oil spill investigation, home">
+      <NavLink to="/app" className="brand" aria-label="Oilence, home">
         <span className="brand-mark"><Mark /></span>
-        <span className="brand-name">Oil Spill Investigation</span>
-        <span className="brand-sub">SIH 26143</span>
+        <span className="brand-name">Oilence</span>
       </NavLink>
       <nav className="topnav" aria-label="Main">
         {nav.map((n) => (
@@ -68,8 +67,8 @@ export default function TopBar() {
       </Popover.Root>
       <div className="topbar-right">
         {canSeeShips(session?.role) && (
-          <button type="button" className="btn btn-accent-outline" onClick={() => useDemo.getState().start()} title="Walk through the demo story">
-            <PlayCircle size={15} strokeWidth={1.8} /> <span className="hide-sm">Guided demo</span>
+          <button type="button" className="btn btn-accent-outline" onClick={() => useTour.getState().start()} title="Walk through an investigation">
+            <PlayCircle size={15} strokeWidth={1.8} /> <span className="hide-sm">Take the tour</span>
           </button>
         )}
         <Tip content={theme === "night" ? "Switch to light theme" : "Switch to dark theme"} side="bottom">
@@ -94,7 +93,7 @@ export default function TopBar() {
                   <span className="avatar avatar-lg" aria-hidden="true">{initials}</span>
                   <div>
                     <b>{session.name}</b>
-                    <span className="muted">{session.email}</span>
+                    <span className="muted">{session.userId}</span>
                   </div>
                 </div>
                 <dl className="kv user-pop-kv">

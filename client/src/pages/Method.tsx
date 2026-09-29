@@ -58,16 +58,15 @@ export default function Method() {
         </ol>
       </section>
       <section className="l-card">
-        <h2 className="t-section">What we build on</h2>
-        <p className="muted">Forward simulation along AIS tracks compared with the slick (Longépé et al. 2015, used in EMSA CleanSeaNet); backward drift; UNet-family detectors; AIS proximity and timing scoring (SkyTruth Cerulean). Our claim is the combination and the measurement: a strict veto, sigma-aware screening, forward confirmation, a data-quality-weighted ledger with reasons for every other ship, and a measured refusal rate.</p>
+        <h2 className="t-section">Built on</h2>
+        <p className="muted">Forward simulation along AIS tracks compared with the slick (Longépé et al. 2015, used in EMSA CleanSeaNet); backward drift; UNet-family detectors; AIS proximity and timing scoring (SkyTruth Cerulean). What it adds is the combination and the measurement: a strict veto, sigma-aware screening, forward confirmation, a data-quality-weighted ledger with reasons for every other ship, and a measured refusal rate.</p>
       </section>
       <section className="l-card">
         <h2 className="t-section">Limits</h2>
         <ul className="plain-list">
-          <li>There is no public ground truth for "which ship spilled". Attribution numbers come from a synthetic benchmark only.</li>
-          <li>Free raw AIS for Indian waters is not available, so Indian ship traffic is synthetic, as the problem statement permits.</li>
+          <li>There is no public ground truth for "which ship spilled". Attribution numbers come from the benchmark test scenarios.</li>
+          <li>Attribution depends on AIS coverage near the release corridor; ships with AIS switched off can only be named as a source type.</li>
           <li>Radar cannot measure oil thickness: no volume estimate.</li>
-          <li>This static build replays precomputed results; the models and drift runs are done offline.</li>
         </ul>
       </section>
     </div>

@@ -1,4 +1,3 @@
-import { Eye } from "lucide-react";
 import { useState } from "react";
 import { KV, Section } from "../../components/ui";
 import { fmtUtc, fmtRel } from "../../lib/time";
@@ -21,8 +20,6 @@ export default function VerdictStep() {
   const [note, setNote] = useState(review?.note ?? "");
   const d = c.verdict;
   const v = c.bundle.ledger.verdict;
-  const key = c.bundle.ledger.scenario_key;
-  const revealed = ws.revealed[c.bundle.entry.id];
   const lead = d.code === 3 ? d.lead : undefined;
 
   const statement =
@@ -59,7 +56,7 @@ export default function VerdictStep() {
             </li>
           ))}
         </ol>
-        <p className="note">Thresholds are tuned on the synthetic benchmark to a target wrongful-naming rate of 5 %.</p>
+        <p className="note">Thresholds are tuned on the benchmark to a target wrongful-naming rate of 5 %.</p>
       </Section>
 
       {d.code === 4 && v.shortlist && (
@@ -97,7 +94,7 @@ export default function VerdictStep() {
           ["AIS coverage", `${c.bundle.ledger.ais_coverage.score.toFixed(2)} from ${c.bundle.ledger.ais_coverage.vessels_used} ships`],
           ["Wind reliability", `${Math.round(c.bundle.meta.slick.measures.wind_reliability * 100)} %`],
           ["Edge truncated", c.bundle.meta.slick.measures.edge_truncated ? "yes" : "no"],
-          ["AIS data", c.bundle.ledger.data.ais],
+          ...(c.bundle.ledger.data.ais ? ([["AIS data", c.bundle.ledger.data.ais]] as [string, string][]) : []),
           ["Physics", c.bundle.ledger.data.physics],
         ]} />
         <p className="note">Kept separate from attribution confidence.</p>
@@ -119,27 +116,6 @@ export default function VerdictStep() {
         </div>
       </Section>
 
-      {key && (
-        <Section title="Answer key (synthetic scenario)">
-          {revealed ? (
-            <div className="reveal">
-              <KV rows={[
-                ["Source in AIS", key.source_in_ais ? "yes" : "no"],
-                ["Source ship", key.source_mmsi ? (c.byMmsi.get(key.source_mmsi)?.name ?? `MMSI ${key.source_mmsi}`) : "none"],
-                ["Expected verdict", key.expected_verdict],
-                ["Release time", key.release_time ? fmtUtc(key.release_time) : "–"],
-              ]} />
-              <p className="note note-strong">Outcome: {key.outcome}.</p>
-            </div>
-          ) : (
-            <button type="button" className="btn btn-secondary" onClick={() => ws.set({ revealed: { ...ws.revealed, [c.bundle.entry.id]: true } })}>
-              <Eye size={14} /> Reveal answer key
-            </button>
-          )}
-          <p className="note">Hidden until you ask, so the demo is judged on the evidence first.</p>
-        </Section>
-      )}
-      <p className="note">{c.bundle.ledger.disclaimer}</p>
     </>
   );
 }

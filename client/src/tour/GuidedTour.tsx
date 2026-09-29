@@ -1,5 +1,5 @@
-// Guided demo: a scripted walk through the demo story (plan section 3.3 / our_approach step 9).
-// It moves between pages and steps, but never makes a human decision for the presenter.
+// Guided tour: a scripted walk through one investigation, from the satellite pass to the verdict.
+// It moves between pages and steps, but never makes a human decision for the user.
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -12,12 +12,12 @@ interface Stop {
   title: string;
   text: string;
   view?: View;
-  /** The presenter must answer the oil check for this case before moving on. */
+  /** The user must answer the oil check for this case before moving on. */
   needsGate?: string;
 }
 
 const STOPS: Stop[] = [
-  { route: "/app", title: "Satellite passes arrive", text: "Each archived Sentinel-1 pass is ingested and scanned for slicks automatically. The pipeline then stops and waits for a person at the oil check." },
+  { route: "/app", title: "Satellite passes arrive", text: "Each Sentinel-1 pass is ingested and scanned for slicks automatically. The pipeline then stops and waits for a person at the oil check." },
   { route: "/app/case/AS-04?step=image", title: "The case", text: "Sentinel-1 radar off Kerala. Oil calms the sea surface, so the 46 km slick shows up as a dark streak. The outline comes from the detector." },
   { route: "/app/case/AS-04?step=oil", title: "A person checks the oil first", text: "Ships and scores stay hidden until someone decides: oil, look-alike or not sure. That keeps the review free of any suspect. Click Confirm oil to continue.", needsGate: "AS-04" },
   { route: "/app/case/AS-04?step=slick", title: "Measure the slick", text: "Area, length, shape and a deliberately weak age prior of 2 to 48 hours. The age sets how far back the drift and the ship search reach." },
@@ -26,28 +26,28 @@ const STOPS: Stop[] = [
   { route: "/app/case/AS-04?step=evidence", title: "Why this ship", text: "The ship's past positions, moved with the same ocean and wind to the image time, land on the slick. The ledger shows every item for and against, weighted by data quality." },
   { route: "/app/case/AS-04?step=evidence", view: "scene", title: "See the hypothesis", text: "The same case in 3D: the ship on its real track at the best-fit release time, the oil on a wind-driven sea. Labelled as a hypothesis, never as evidence. Try Radar look." },
   { route: "/app/case/AS-04?step=evidence", view: "cube", title: "Space and time together", text: "Time runs upward. The leading ship's track passes through the oil's past positions at the same moment: consistent with releasing it." },
-  { route: "/app/case/AS-04?step=verdict", title: "One verdict, checked in order", text: "Five verdicts, first match wins. A ship is named only when it clearly beats the runner-up and stays first in the perturbed runs. The answer key stays hidden until you reveal it." },
+  { route: "/app/case/AS-04?step=verdict", title: "One verdict, checked in order", text: "Five verdicts, first match wins. A ship is named only when it clearly beats the runner-up and stays first in the perturbed runs." },
   { route: "/app/case/IN-E1?step=oil", title: "When the answer is no", text: "A real slick off Kerala near the MSC Elsa 3 wreck. Confirm oil to see what the system says when no AIS ship fits.", needsGate: "IN-E1" },
   { route: "/app/case/IN-E1?step=verdict", title: "A measured refusal", text: "No consistent AIS vessel. Coverage was adequate, so the system says so, instead of naming the nearest ship." },
-  { route: "/app/benchmark", title: "Measured, not claimed", text: "On 100 held-out synthetic cases with the source absent, the system named a ship 0 times. Simpler methods name the wrong ship far more often." },
+  { route: "/app/benchmark", title: "Measured, not claimed", text: "On 100 held-out test scenarios with the source absent, the system named a ship 0 times. Simpler methods name the wrong ship far more often." },
 ];
 
-interface DemoState {
+interface TourState {
   index: number | null;
   start: () => void;
   stop: () => void;
   go: (i: number) => void;
 }
 
-export const useDemo = create<DemoState>((set) => ({
+export const useTour = create<TourState>((set) => ({
   index: null,
   start: () => set({ index: 0 }),
   stop: () => set({ index: null }),
   go: (i) => set({ index: Math.max(0, Math.min(STOPS.length - 1, i)) }),
 }));
 
-export default function GuidedDemo() {
-  const { index, go, stop } = useDemo();
+export default function GuidedTour() {
+  const { index, go, stop } = useTour();
   const navigate = useNavigate();
   const gates = useReview((s) => s.gate);
   const s = index != null ? STOPS[index] : null;
@@ -74,10 +74,10 @@ export default function GuidedDemo() {
   if (!s || index == null) return null;
   const blocked = Boolean(s.needsGate && !gates[s.needsGate]);
   return (
-    <aside className="coach" role="dialog" aria-label="Guided demo" aria-live="polite">
+    <aside className="coach" role="dialog" aria-label="Guided tour" aria-live="polite">
       <header>
-        <span className="t-label num">Guided demo, {index + 1} of {STOPS.length}</span>
-        <button type="button" className="icon-btn" aria-label="End the demo" onClick={stop}><X size={15} /></button>
+        <span className="t-label num">Guided tour, {index + 1} of {STOPS.length}</span>
+        <button type="button" className="icon-btn" aria-label="End the tour" onClick={stop}><X size={15} /></button>
       </header>
       <h2 className="t-section">{s.title}</h2>
       <p>{s.text}</p>

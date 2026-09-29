@@ -17,6 +17,7 @@ const map: Record<string, string> = {
   sea: "sea", land: "land", coast: "coast", ink: "ink", ink2: "ink-2", grid: "grid", past: "past",
   future: "future", shipLead: "ship-lead", shipShort: "ship-short", shipScreen: "ship-screen",
   shipElim: "ship-elim", shipBg: "ship-bg", focus: "focus", accent: "accent", teal: "teal",
+  v1: "v1", v2: "v2", v3: "v3", v4: "v4", v5: "v5",
 };
 
 describe("palette.ts mirrors tokens.css", () => {

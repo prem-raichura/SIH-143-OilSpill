@@ -64,7 +64,7 @@ export const LAYERS: LayerDef[] = [
 ];
 
 type LayerSet = Partial<Record<LayerId, boolean>>;
-const base: LayerSet = { slick: true, eez: true, graticule: true, ports: true, platforms: false };
+const base: LayerSet = { slick: true, eez: true, graticule: false, ports: true, platforms: false };
 
 /** Which camera fit shows a layer best ("zoom to layer"). */
 export const LAYER_FIT: Partial<Record<LayerId, WorkspaceState["fitRequest"]["kind"]>> = {
@@ -103,13 +103,15 @@ export interface WorkspaceState {
   colorBySpeed: boolean;
   /** Layers the user explicitly toggled. These stick across steps; step presets only fill in the rest. */
   touched: Partial<Record<LayerId, boolean>>;
-  revealed: Record<string, boolean>;
   followWindowH: number;
   tilt: boolean;
   decimalCoords: boolean;
   fitRequest: { kind: "slick" | "corridor" | "ships" | "selected" | "sar" | "drift" | "bbox"; n: number };
   playedDrift: Record<string, boolean>;
+  /** Layer drawer over the left of the map (closed by default). */
   railOpen: boolean;
+  /** Step details panel over the right of the map (a bottom sheet on narrow screens). */
+  panelOpen: boolean;
   enterCase: (caseId: string) => void;
   setStep: (s: Step) => void;
   setView: (v: View) => void;
@@ -122,6 +124,8 @@ export interface WorkspaceState {
   setDriftTab: (t: WorkspaceState["driftTab"]) => void;
   set: (p: Partial<WorkspaceState>) => void;
   requestFit: (kind: WorkspaceState["fitRequest"]["kind"]) => void;
+  /** Re-frame the map on what the current step is about. */
+  refit: () => void;
 }
 
 const allOff = Object.fromEntries(LAYERS.map((l) => [l.id, false])) as Record<LayerId, boolean>;
@@ -146,13 +150,14 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   onlyShortlist: false,
   colorBySpeed: false,
   touched: {},
-  revealed: {},
   followWindowH: 24,
   tilt: false,
   decimalCoords: false,
   fitRequest: { kind: "sar", n: 0 },
   playedDrift: {},
-  railOpen: true,
+  railOpen: false,
+  // Wide screens open the step panel beside the map; narrow screens start with the map and a collapsed sheet.
+  panelOpen: typeof window === "undefined" || !window.matchMedia?.("(max-width: 1023px)").matches,
   enterCase: (caseId) => {
     if (get().caseId === caseId) return;
     set({
@@ -189,4 +194,5 @@ export const useWorkspace = create<WorkspaceState>((set, get) => ({
   setDriftTab: (driftTab) => set({ driftTab }),
   set: (p) => set(p),
   requestFit: (kind) => set((s) => ({ fitRequest: { kind, n: s.fitRequest.n + 1 } })),
+  refit: () => set((s) => ({ fitRequest: { kind: FIT_FOR[s.step], n: s.fitRequest.n + 1 } })),
 }));

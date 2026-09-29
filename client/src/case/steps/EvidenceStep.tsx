@@ -1,7 +1,7 @@
 import { Box, Route } from "lucide-react";
 import { useEffect } from "react";
 import { DivergingBar, StripDots } from "../../charts/charts";
-import { Band, KV, Meter, Section, SyntheticBadge } from "../../components/ui";
+import { Band, KV, Meter, Section } from "../../components/ui";
 import { HullGlyph } from "../../components/HullGlyph";
 import { fmtKm } from "../../lib/geo";
 import { fmtClock, fmtRel, hoursFrom } from "../../lib/time";
@@ -57,7 +57,6 @@ export default function EvidenceStep() {
           </div>
           <div style={{ display: "flex", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
             <span className="chip">{ROLE_LABEL[v.role]}</span>
-            {v.synthetic && <SyntheticBadge>Synthetic AIS</SyntheticBadge>}
             {cand && <Band band={cand.band} />}
           </div>
         </div>
@@ -79,7 +78,7 @@ export default function EvidenceStep() {
       {ws.layers.driftCorrected && (
         <p className="note">
           Dashed line: each AIS position before the image, moved with the ocean and wind to the image time (fast screening approximation, α 3 %
-          because the shipped arrows carry no separate Stokes drift). The blue haze is the 1-sigma spread. If the line lands on the slick, the
+          because the forcing arrows carry no separate Stokes drift). The blue haze is the 1-sigma spread. If the line lands on the slick, the
           ship's past track is consistent with it.
         </p>
       )}
@@ -121,7 +120,7 @@ export default function EvidenceStep() {
               {cand.confirmation
                 ? "Forward confirmation replaces the screening overlay in the spatial fit, so the fit is counted once."
                 : "Only the fast screening fit is available for this ship."}{" "}
-              Bands are calibrated on synthetic data, never real-world probabilities.
+              Bands are calibrated scores, never real-world probabilities.
             </p>
           </Section>
 
@@ -148,7 +147,7 @@ export default function EvidenceStep() {
                   ["Scales", cand.confirmation.scales_km.map((s) => `${s} km`).join(", ")],
                 ]}
               />
-              <p className="note">OpenDrift releases oil along this ship's real track and compares the simulated slick with the observed one.</p>
+              <p className="note">OpenDrift releases oil along this ship's real track and compares the modelled slick with the observed one.</p>
             </Section>
           )}
 
@@ -188,7 +187,6 @@ export default function EvidenceStep() {
           ))}
         </div>
       </Section>
-      <p className="note">{c.bundle.ledger.disclaimer}</p>
     </>
   );
 }

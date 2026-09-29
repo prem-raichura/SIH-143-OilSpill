@@ -15,28 +15,31 @@
 .map-br > * {
   pointer-events: auto;
 }
+/* Corners keep clear of panels floating over the map: pages set --map-inset-left/right/bottom (see .ws-stage). */
 .map-tl {
   top: 14px;
-  left: 14px;
+  left: calc(14px + var(--map-inset-left, 0px));
   align-items: center;
   flex-wrap: wrap;
-  max-width: calc(100% - 90px);
+  max-width: calc(100% - 90px - var(--map-inset-left, 0px) - var(--map-inset-right, 0px));
 }
 .map-tr {
-  top: 14px;
-  right: 14px;
+  top: calc(14px + var(--map-inset-top, 0px));
+  right: calc(14px + var(--map-inset-right, 0px));
+  bottom: calc(110px + var(--map-inset-bottom, 0px));
   align-items: flex-start;
 }
 .map-bl {
-  left: 14px;
-  bottom: 42px;
+  left: calc(14px + var(--map-inset-left, 0px));
+  bottom: calc(40px + var(--map-inset-bottom, 0px));
   flex-direction: column;
   align-items: flex-start;
-  max-height: calc(100% - 110px);
+  max-height: calc(100% - 130px - var(--map-inset-bottom, 0px));
 }
 .map-br {
-  right: 14px;
-  bottom: 42px;
+  right: calc(14px + var(--map-inset-right, 0px));
+  bottom: calc(40px + var(--map-inset-bottom, 0px));
+  align-items: flex-end;
 }
 
 /* Shared pill look for map controls */
@@ -44,15 +47,35 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 34px;
-  padding: 0 11px;
+  height: 38px;
+  padding: 0 12px;
   background: var(--panel);
   color: var(--ink);
   border: 1px solid var(--line);
   border-radius: var(--r-btn);
   box-shadow: var(--shadow);
-  font-size: 12.5px;
-  font-weight: 560;
+  font-size: 13.5px;
+  font-weight: 580;
+}
+.layers-chip svg {
+  color: var(--accent);
+}
+.layers-chip[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chip-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11.5px;
+  font-weight: 700;
 }
 button.map-chip {
   cursor: pointer;
@@ -176,9 +199,70 @@ button.map-chip[data-state="open"] {
 }
 .ctrl-group .icon-btn {
   border-radius: 0;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  color: var(--ink);
+}
+.ctrl-group .icon-btn[aria-pressed="true"] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* "More tools" menu */
+.tools-pop {
+  display: grid;
+  gap: 8px;
+  width: 280px;
+  padding: 8px;
+}
+.tools-list {
+  display: grid;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.tools-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.tools-row:hover:not(:disabled) {
+  background: var(--panel-2);
+}
+.tools-row[aria-pressed="true"] {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.tools-row:disabled {
+  color: var(--ink-3);
+  cursor: not-allowed;
+}
+.tools-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
   color: var(--ink-2);
+}
+.tools-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 8px 4px;
+  cursor: pointer;
+}
+.tools-switch > span {
+  display: grid;
+  gap: 2px;
+  font-size: 13.5px;
 }
 .ctrl-group .icon-btn:hover:not(:disabled) {
   color: var(--accent);
@@ -195,7 +279,7 @@ button.map-chip[data-state="open"] {
   border: 1px solid var(--line);
   border-radius: var(--r-card);
   box-shadow: var(--shadow);
-  width: 236px;
+  width: 250px;
   max-height: 100%;
   display: flex;
   flex-direction: column;
@@ -207,8 +291,8 @@ button.map-chip[data-state="open"] {
   gap: 7px;
   border: 0;
   background: transparent;
-  padding: 8px 10px;
-  font-size: 12.5px;
+  padding: 9px 12px;
+  font-size: 13.5px;
   font-weight: 640;
   cursor: pointer;
   color: var(--ink);
@@ -236,12 +320,10 @@ button.map-chip[data-state="open"] {
   min-height: 0;
 }
 .legend-group h4 {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  margin: 8px 0 3px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--ink-2);
+  margin: 9px 0 4px;
 }
 .legend-group ul {
   list-style: none;
@@ -252,11 +334,11 @@ button.map-chip[data-state="open"] {
 }
 .legend-group li {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-columns: 24px minmax(0, 1fr);
   align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  line-height: 16px;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 18px;
 }
 .legend-sw {
   display: inline-grid;
@@ -265,8 +347,9 @@ button.map-chip[data-state="open"] {
 
 /* Identify */
 .identify {
-  width: 290px;
-  max-height: calc(100vh - 360px);
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  max-height: 100%;
   min-height: 0;
   overflow-y: auto;
   display: grid;
@@ -301,7 +384,7 @@ button.map-chip[data-state="open"] {
   flex: 1;
 }
 .identify-title b {
-  font-size: 14px;
+  font-size: 15px;
 }
 .identify-title .muted {
   font-size: 12px;
@@ -309,7 +392,7 @@ button.map-chip[data-state="open"] {
 }
 .identify .kv dt,
 .identify .kv dd {
-  font-size: 12.5px;
+  font-size: 13.5px;
   padding: 5px 0;
 }
 @keyframes pop-in {
@@ -333,20 +416,19 @@ button.map-chip[data-state="open"] {
   cursor: pointer;
 }
 
-/* Status bar */
+/* Status bar: scale and attribution (plus coordinates and zoom with the advanced tools) */
 .map-statusbar {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: var(--map-inset-bottom, 0px);
   z-index: 6;
   height: 30px;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 10px;
-  background: color-mix(in srgb, var(--panel) 92%, transparent);
-  border-top: 1px solid var(--line);
+  padding: 0 calc(12px + var(--map-inset-right, 0px)) 0 calc(12px + var(--map-inset-left, 0px));
+  background: linear-gradient(0deg, color-mix(in srgb, var(--panel) 88%, transparent), color-mix(in srgb, var(--panel) 55%, transparent));
   font-size: 11.5px;
   color: var(--ink-2);
   min-width: 0;
@@ -392,19 +474,11 @@ button.map-chip[data-state="open"] {
 }
 
 
-@media (max-width: 900px) {
-  .map-br {
-    display: none;
-  }
-}
 @media (max-width: 640px) {
   .goto {
     display: none;
   }
   .map-statusbar .coord-readout {
-    display: none;
-  }
-  .map-ctrls .ctrl-group:nth-child(3) {
     display: none;
   }
   .identify {
@@ -437,4 +511,12 @@ button.map-chip[data-state="open"] {
 .scale-bar .bar-km {
   border-top: 1.5px solid var(--ink);
   border-bottom: 0;
+}
+/* Kilometres only: a plain bracket bar */
+.scale-bar .sb-row:only-child .bar-km {
+  border-top: 0;
+  border-bottom: 1.5px solid var(--ink);
+}
+.map-statusbar .scale-bar .sb-row:only-child {
+  font-size: 11.5px;
 }

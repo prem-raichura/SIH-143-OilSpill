@@ -4,7 +4,7 @@ import { HashRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import RequireAuth from "./auth/RequireAuth";
 import { Loading } from "./components/ui";
 import TopBar from "./shell/TopBar";
-import GuidedDemo from "./demo/GuidedDemo";
+import GuidedTour from "./tour/GuidedTour";
 
 const Landing = lazy(() => import("./pages/Landing"));
 const Login = lazy(() => import("./pages/Login"));
@@ -35,7 +35,7 @@ function AppFrame() {
           <Suspense fallback={<PageFallback />}>
             <Outlet />
           </Suspense>
-          <GuidedDemo />
+          <GuidedTour />
         </main>
       </div>
     </RequireAuth>

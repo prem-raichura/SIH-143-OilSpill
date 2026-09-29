@@ -1,4 +1,4 @@
-// Types mirroring "static data/README.md". Coordinates are [lon, lat] WGS84, times UTC ISO 8601.
+// Types for the files in public/data. Coordinates are [lon, lat] WGS84, times UTC ISO 8601.
 
 export type LonLat = [number, number];
 export type Bounds = [number, number, number, number]; // west, south, east, north
@@ -47,12 +47,9 @@ export interface Verdict {
 
 export interface CaseIndexEntry {
   id: string;
-  kind: string;
-  note: string;
   t_image: string;
   region: "india" | "gulf_of_mexico";
   centroid: LonLat;
-  labels: string[];
   verdict: { code: VerdictCode; label: string; name: string | null; mmsi: number | null; probable_source: string | null };
   has_sar_image: boolean;
   path: string;
@@ -119,8 +116,6 @@ export interface Physics {
 
 export interface Meta {
   id: string;
-  kind: string;
-  note: string;
   t_image: string;
   window: [string, string];
   bbox: Bounds;
@@ -139,7 +134,7 @@ export interface Meta {
     sar_targets: string;
     n_sar_targets: number;
   } | null;
-  ais: string;
+  ais?: string;
   forcing: Record<string, string>;
   physics: Physics;
   forecast: {
@@ -151,9 +146,6 @@ export interface Meta {
   };
   verdict: Verdict;
   human_gate: string;
-  scenario_key_available?: boolean;
-  labels: string[];
-  reproduce: string;
 }
 
 export interface EvidenceItem {
@@ -220,22 +212,10 @@ export interface Eliminated extends Reachability {
   why_not: string;
 }
 
-export interface ScenarioKey {
-  source_mmsi: number | null;
-  source_in_ais: boolean;
-  expected_verdict: string;
-  release_time: string | null;
-  physics: string | null;
-  injection: string | null;
-  label: string;
-  outcome: string;
-}
-
 export interface Ledger {
   case_id: string;
   t_image: string;
   verdict: Verdict;
-  disclaimer: string;
   ais_coverage: { score: number; vessels_used: number; threshold: number };
   none_option_support: number;
   thresholds: {
@@ -265,8 +245,7 @@ export interface Ledger {
     sar_only_targets: number;
   };
   why_not: { mmsi: number; name: string; score: number; text: string }[];
-  scenario_key?: ScenarioKey | null;
-  data: { ais: string; physics: string; human_gate: string };
+  data: { ais?: string; physics: string; human_gate: string };
   candidates_summary: { mmsi: number; name: string; score: number; fit: number; band: string; best_fit_age_h: number }[];
   candidates_not_listed: number;
   eliminated_total: number;
@@ -379,7 +358,6 @@ export interface BenchmarkSetB {
   vessel_without_ais_rate: [number, CI];
 }
 export interface Benchmark {
-  label: string;
   design: Record<string, unknown> & { scenarios_per_set: number; target_wrongful_naming: number };
   thresholds: Ledger["thresholds"];
   tuning: { set_A: BenchmarkSetA; set_B: BenchmarkSetB };

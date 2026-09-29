@@ -3,7 +3,8 @@ import { KM_PER_NM } from "../lib/geo";
 
 const NICE = [0.5, 1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000];
 
-export default function ScaleBar({ vp }: { vp: WebMercatorViewport | null }) {
+/** Map scale at the centre of the view: kilometres, plus nautical miles when `units` is "both". */
+export default function ScaleBar({ vp, units = "both" }: { vp: WebMercatorViewport | null; units?: "km" | "both" }) {
   if (!vp) return null;
   const [lon, lat] = vp.unproject([vp.width / 2, vp.height / 2]);
   // unitsPerMeter is in common units (zoom 0); multiply by the viewport scale for pixels.
@@ -14,8 +15,8 @@ export default function ScaleBar({ vp }: { vp: WebMercatorViewport | null }) {
   const nm = [...NICE].reverse().find((d) => (d * KM_PER_NM) / kmPerPx <= maxPx) ?? 0.5;
   const km = [...NICE].reverse().find((d) => d / kmPerPx <= maxPx) ?? 0.5;
   return (
-    <div className="scale-bar" aria-label={`Scale: ${nm} nautical miles, ${km} kilometres`}>
-      <span className="sb-row"><span className="bar" style={{ width: (nm * KM_PER_NM) / kmPerPx }} /><span>{nm} nm</span></span>
+    <div className="scale-bar" aria-label={units === "both" ? `Scale: ${nm} nautical miles, ${km} kilometres` : `Scale: ${km} kilometres`}>
+      {units === "both" && <span className="sb-row"><span className="bar" style={{ width: (nm * KM_PER_NM) / kmPerPx }} /><span>{nm} nm</span></span>}
       <span className="sb-row"><span className="bar bar-km" style={{ width: km / kmPerPx }} /><span>{km} km</span></span>
     </div>
   );

@@ -116,9 +116,7 @@
   --r-card: 10px;
   --r-pill: 999px;
   --topbar-h: 56px;
-  --stepbar-h: 52px;
-  --rail-w: 220px;
-  --panel-w: 350px;
-  --dock-h: 92px;
+  --stepbar-h: 44px;
+  --dock-h: 64px;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }

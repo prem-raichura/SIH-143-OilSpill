@@ -1,5 +1,6 @@
 import { ChevronDown, ListTree } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useMedia } from "../lib/useMedia";
 
 export interface LegendItem {
   key: string;
@@ -13,8 +14,12 @@ export interface LegendGroup {
 
 /** Collapsible legend card in the bottom-left of a map. */
 export default function MapLegend({ groups, defaultOpen }: { groups: LegendGroup[]; defaultOpen?: boolean }) {
-  const narrow = typeof window !== "undefined" && window.matchMedia?.("(max-width: 640px)").matches;
-  const [open, setOpen] = useState(defaultOpen ?? !narrow);
+  // Open on larger screens, collapsed on phones; follows the screen size unless a default is given.
+  const small = useMedia("(max-width: 640px)");
+  const [open, setOpen] = useState(defaultOpen ?? !small);
+  useEffect(() => {
+    if (defaultOpen == null) setOpen(!small);
+  }, [small, defaultOpen]);
   const shown = groups.filter((g) => g.items.length);
   return (
     <section className={`map-legend${open ? " open" : ""}`} aria-label="Legend">

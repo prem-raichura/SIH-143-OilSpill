@@ -66,7 +66,7 @@ export function deriveVerdict(ledger: Ledger, meta: Pick<Meta, "slick">, gate: G
         ? "Confirmed at the oil check"
         : gate === "uncertain"
           ? "Marked not sure at the oil check; case flagged, analysis continues"
-          : "Stored analysis assumes confirmed oil",
+          : "Analysis assumes confirmed oil until the oil check is answered",
     status: "continue",
   });
 

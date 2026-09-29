@@ -14,7 +14,13 @@ export const PLACE: Record<string, string> = {
   "IN-R1": "Arabian Sea, west of Ratnagiri",
 };
 
+export type Region = "india" | "gulf_of_mexico";
 export const REGION_LABEL = { india: "Indian waters", gulf_of_mexico: "Gulf of Mexico" } as const;
+/** Camera extent for each region overview: west, south, east, north. */
+export const REGION_BOUNDS: Record<Region, [number, number, number, number]> = {
+  india: [66, 6.5, 85, 22.5],
+  gulf_of_mexico: [-98, 23, -86, 31],
+};
 
 export const WATER_LABELS: { region: "india" | "gulf_of_mexico"; name: string; at: [number, number]; minZoom: number }[] = [
   { region: "india", name: "Arabian Sea", at: [66.5, 15.5], minZoom: 3 },
@@ -25,10 +31,3 @@ export const WATER_LABELS: { region: "india" | "gulf_of_mexico"; name: string; a
   { region: "gulf_of_mexico", name: "Gulf of Mexico", at: [-90.5, 25.2], minZoom: 3 },
   { region: "gulf_of_mexico", name: "Bay of Campeche", at: [-94.2, 20.2], minZoom: 5 },
 ];
-
-/** "REAL SLICK (Cerulean)" -> "Real slick (Cerulean)", and whether it is a real-data label. */
-export function labelInfo(label: string): { text: string; real: boolean } {
-  const text = label.charAt(0) + label.slice(1).replace(/[A-Z]{2,}/g, (w) => w.toLowerCase()).replace(/\bAis\b/i, "AIS");
-  const clean = text.replace(/\bais\b/gi, "AIS");
-  return { text: clean.charAt(0).toUpperCase() + clean.slice(1), real: /^REAL/i.test(label) };
-}

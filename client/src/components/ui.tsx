@@ -1,27 +1,7 @@
 import * as RTooltip from "@radix-ui/react-tooltip";
 import { useRef, type KeyboardEvent, type ReactNode } from "react";
 import type { VerdictCode } from "../data/types";
-import { labelInfo } from "../data/places";
 import { VERDICT_SHORT } from "../lib/verdict";
-
-export function ProvenanceBadges({ labels }: { labels: string[] }) {
-  return (
-    <span className="badge-row">
-      {labels.map((l) => {
-        const { text, real } = labelInfo(l);
-        return (
-          <span key={l} className={`badge ${real ? "badge-real" : "badge-synthetic"}`} title={real ? "Real data" : "Synthetic or simulated data"}>
-            {text}
-          </span>
-        );
-      })}
-    </span>
-  );
-}
-
-export function SyntheticBadge({ children = "Synthetic" }: { children?: ReactNode }) {
-  return <span className="badge badge-synthetic">{children}</span>;
-}
 
 export function VerdictChip({ code, label }: { code: VerdictCode; label?: string }) {
   return (
@@ -35,7 +15,7 @@ export function VerdictChip({ code, label }: { code: VerdictCode; label?: string
 export function Band({ band }: { band: "High" | "Medium" | "Low" }) {
   const n = band === "High" ? 3 : band === "Medium" ? 2 : 1;
   return (
-    <span className="band" aria-label={`${band} band`} title={`${band} (synthetic-calibrated band, not a probability)`}>
+    <span className="band" aria-label={`${band} band`} title={`${band} (calibrated band, not a probability)`}>
       {[0, 1, 2].map((i) => (
         <i key={i} className={i < n ? "on" : ""} />
       ))}

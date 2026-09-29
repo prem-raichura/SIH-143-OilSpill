@@ -74,6 +74,9 @@ export const useGallery = () => useJson<Gallery>("shared/gallery/gallery.json");
 
 export type LandFC = FeatureCollection<PolygonGeometry, Record<string, unknown>>;
 
+/** Coastline polygons only (for static charts that do not need the other shared layers). */
+export const useLand = (region: "india" | "gulf_of_mexico" | null) => useJson<LandFC>(region ? `shared/land_${region}.geojson` : null).data;
+
 export function useShared(region: "india" | "gulf_of_mexico" | null) {
   const land = useJson<LandFC>(region ? `shared/land_${region}.geojson` : null);
   const eez = useJson<LandFC>("shared/eez.geojson");

@@ -1,4 +1,4 @@
-// Bilinear-in-space, linear-in-time lookup on the shipped 0.5 degree forcing grid.
+// Bilinear-in-space, linear-in-time lookup on the case's 0.5 degree forcing grid.
 import type { ForcingArrows, LonLat } from "../data/types";
 import { hoursFrom } from "./time";
 

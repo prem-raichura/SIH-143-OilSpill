@@ -1,7 +1,7 @@
 // "Pick any ship": a fast drift-corrected track, same idea as the pipeline's screening step.
 // Each AIS point before the image is moved to the image time with
 //   V = current (circulation + tide) + alpha * wind10,
-// using alpha = 3 % because the shipped arrows carry no separate Stokes drift (spec rule: no Stokes -> 3-3.5 %).
+// using alpha = 3 % because the forcing arrows carry no separate Stokes drift (no Stokes term -> 3-3.5 %).
 // A screening approximation only: no spreading, no weathering, coarse 0.5 degree forcing.
 import type { LonLat } from "../data/types";
 import type { ForcingField } from "./forcing";

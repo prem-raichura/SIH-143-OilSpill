@@ -12,10 +12,13 @@ export interface MapHandle {
   flyTo: (lon: number, lat: number, zoom?: number) => void;
 }
 
+/** Fit padding in pixels: one number for every side, or per side (e.g. to keep data clear of a side panel). */
+export type FitPadding = number | { top: number; right: number; bottom: number; left: number };
+
 export interface MapCanvasProps {
   layers: (Layer | null | false | undefined)[];
   /** Bounds to fit whenever fitKey changes. */
-  fit: { bounds: Bounds | null; key: string | number; padding?: number; maxZoom?: number };
+  fit: { bounds: Bounds | null; key: string | number; padding?: FitPadding; maxZoom?: number };
   onHover?: (info: PickingInfo) => void;
   onClick?: (info: PickingInfo) => void;
   onViewport?: (vp: WebMercatorViewport) => void;
@@ -27,6 +30,16 @@ export interface MapCanvasProps {
 
 const MAP_VIEW = new MapView({ repeat: false });
 const clampZoom = (z: number) => Math.max(1.5, Math.min(16, z));
+
+/** Per-side padding that always leaves room for the data: at most 60 % of the width and 50 % of the height. */
+function sidePadding(p: FitPadding | undefined, width: number, height: number) {
+  const raw = p ?? 48;
+  const o = typeof raw === "number" ? { top: raw, right: raw, bottom: raw, left: raw } : raw;
+  const fitPair = (a: number, b: number, max: number): [number, number] => (a + b > max ? [(a * max) / (a + b), (b * max) / (a + b)] : [a, b]);
+  const [left, right] = fitPair(o.left, o.right, width * 0.6);
+  const [top, bottom] = fitPair(o.top, o.bottom, height * 0.5);
+  return { top: Math.floor(top), right: Math.floor(right), bottom: Math.floor(bottom), left: Math.floor(left) };
+}
 
 export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanvas(
   { layers, fit, onHover, onClick, onViewport, pitch = 0, children, cursor, ariaLabel },
@@ -82,14 +95,15 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
   useEffect(() => {
     if (!fit.bounds || !size.width || !size.height) return;
     if (lastKey.current !== fit.key) interacted.current = false;
-    // Refit on a new key, or on resize while the user has not moved the map yet.
-    const sig = `${fit.key}|${interacted.current ? "user" : `${Math.round(size.width / 40)}x${Math.round(size.height / 40)}`}`;
+    const pad = sidePadding(fit.padding, size.width, size.height);
+    // Refit on a new key, or on resize or a panel change while the user has not moved the map yet.
+    const layout = `${Math.round(size.width / 40)}x${Math.round(size.height / 40)}:${Math.round(pad.left / 20)},${Math.round(pad.right / 20)},${Math.round(pad.top / 20)},${Math.round(pad.bottom / 20)}`;
+    const sig = `${fit.key}|${interacted.current ? "user" : layout}`;
     if (lastFit.current === sig) return;
     const first = lastFit.current === null;
     lastFit.current = sig;
     lastKey.current = fit.key;
     const [w, s, e, n] = fit.bounds;
-    const pad = Math.min(fit.padding ?? 48, Math.floor(Math.min(size.width, size.height) / 4));
     const vp = new WebMercatorViewport({ width: size.width, height: size.height }).fitBounds(
       [[w, s], [e, n]],
       { padding: pad, maxZoom: fit.maxZoom ?? 11 },

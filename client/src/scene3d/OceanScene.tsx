@@ -410,7 +410,8 @@ export default function OceanScene() {
         <span className="num">{fmtRel(h)}</span>
       </div>
 
-      <div className="scene-hud scene-hud-tr">
+      <details className="scene-hud scene-hud-tr" open>
+        <summary><b>View controls</b></summary>
         <Segmented<Preset>
           label="Camera"
           size="sm"
@@ -433,7 +434,7 @@ export default function OceanScene() {
           </select>
         </label>
         <div className="scene-toggles">
-          <label title="Grey-scale, the way the satellite radar sees the sea"><input type="checkbox" checked={opts.sar} onChange={(e) => set({ sar: e.target.checked, preset: e.target.checked ? "satellite" : opts.preset, presetKey: opts.presetKey + (e.target.checked ? 1 : 0) })} /> Radar look (satellite view)</label>
+          <label title="Grey-scale, the way the satellite radar sees the sea"><input type="checkbox" checked={opts.sar} onChange={(e) => set({ sar: e.target.checked, preset: e.target.checked ? "satellite" : opts.preset, presetKey: opts.presetKey + (e.target.checked ? 1 : 0) })} /> Radar look</label>
           <label><input type="checkbox" checked={opts.trueScale} onChange={(e) => set({ trueScale: e.target.checked })} /> True ship size</label>
           <label><input type="checkbox" checked={opts.labels} onChange={(e) => set({ labels: e.target.checked })} /> Labels</label>
           <label><input type="checkbox" checked={opts.quality === "low"} onChange={(e) => set({ quality: e.target.checked ? "low" : "high" })} /> Low quality</label>
@@ -444,7 +445,7 @@ export default function OceanScene() {
             <input type="range" min={0} max={15} step={0.5} value={opts.sarWind} onChange={(e) => set({ sarWind: Number(e.target.value) })} />
           </label>
         )}
-      </div>
+      </details>
 
       {hyp && c.shipsUnlocked && (
         <div className="scene-banner" role="note">
