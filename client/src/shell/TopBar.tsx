@@ -31,9 +31,9 @@ export default function TopBar() {
   const initials = session ? session.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase() : "";
   return (
     <header className="topbar">
-      <NavLink to="/app" className="brand" aria-label="Oilence, home">
+      <NavLink to="/app" className="brand" aria-label="Oilens, home">
         <span className="brand-mark"><Mark /></span>
-        <span className="brand-name">Oilence</span>
+        <span className="brand-name">Oilens</span>
       </NavLink>
       <nav className="topnav" aria-label="Main">
         {nav.map((n) => (
