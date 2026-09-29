@@ -313,6 +313,11 @@ button.map-chip[data-state="open"] {
 .map-legend:not(.open) {
   width: auto;
 }
+.legend-collapse {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
 .legend-body {
   overflow-y: auto;
   padding: 0 10px 8px;
@@ -360,7 +365,6 @@ button.map-chip[data-state="open"] {
   border-top: 3px solid var(--accent);
   border-radius: var(--r-card);
   box-shadow: var(--shadow);
-  animation: pop-in 160ms var(--ease);
 }
 .identify header {
   display: flex;

@@ -6,6 +6,7 @@ import { LineLayer, PathLayer, ScatterplotLayer, TextLayer } from "@deck.gl/laye
 import DeckGL from "@deck.gl/react";
 import { useMemo, useState } from "react";
 import { useCase } from "../case/useCase";
+import { CollapsiblePanel } from "../components/motion";
 import type { LonLat } from "../data/types";
 import { PALETTES, rgba } from "../design/palette";
 import { geometryRings, makeEnu } from "../lib/geo";
@@ -221,8 +222,7 @@ export default function SpaceTimeCube() {
         getCursor={({ isDragging, isHovering }) => (isDragging ? "grabbing" : isHovering ? "pointer" : "grab")}
       />
       {hover && <MapTooltip x={hover.x} y={hover.y} width={hover.w} height={hover.h}>{hover.text}</MapTooltip>}
-      <details className="cube-panel" open>
-        <summary><b>Space-time cube</b></summary>
+      <CollapsiblePanel className="cube-panel" title="Space-time cube">
         <p>Up is time: the slick at the image sits on top, where the oil was N hours earlier sits below it (magenta). Ship tracks climb with time. A track that passes through the oil's past at the same height is consistent with releasing it.</p>
         <label className="field">
           <span className="t-label">Vertical scale {zs.toFixed(1)} km per hour</span>
@@ -236,7 +236,7 @@ export default function SpaceTimeCube() {
         )}
         {!c.shipsUnlocked && !c.analyst && <p className="note">Ships appear after the oil check.</p>}
         <p className="t-label">Thin frame: the current timeline time. Highlighted track: the selected ship. Drag to rotate, scroll to zoom.</p>
-      </details>
+      </CollapsiblePanel>
     </div>
   );
 }

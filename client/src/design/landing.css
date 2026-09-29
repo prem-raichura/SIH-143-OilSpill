@@ -138,6 +138,12 @@
   position: absolute;
   inset: 0;
   display: block;
+  animation: cp-fade-in 450ms ease;
+}
+@keyframes cp-fade-in {
+  from {
+    opacity: 0;
+  }
 }
 .chart-plate-frame {
   position: absolute;

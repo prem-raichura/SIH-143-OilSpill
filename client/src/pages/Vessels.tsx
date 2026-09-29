@@ -1,7 +1,8 @@
 import { Ship } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ErrorNote, Loading, PageHeader, Tabs } from "../components/ui";
+import { PageSkeleton } from "../components/loaders";
+import { ErrorNote, PageHeader, Tabs } from "../components/ui";
 import { fetchJson, useCasesIndex } from "../data/load";
 import { PLACE, REGION_LABEL, type Region } from "../data/places";
 import type { Ledger, Monitoring, TrackFeature, FeatureCollection } from "../data/types";
@@ -57,7 +58,7 @@ export default function Vessels() {
   const list = useMemo(() => (rows ?? []).filter((r) => r.region === tab), [rows, tab]);
   if (!canSeeShips(role)) return <div className="page-pad">Vessel history is for investigators and supervisors. Analysts review oil only, so reviews stay free of ship bias.</div>;
   if (index.error) return <div className="page-pad"><ErrorNote error={index.error} /></div>;
-  if (!rows) return <div className="page-pad"><Loading /></div>;
+  if (!rows) return <PageSkeleton variant="table" />;
   const count = (r: Row, role: Role) => r.checked.filter((x) => x.role === role).length;
 
   return (

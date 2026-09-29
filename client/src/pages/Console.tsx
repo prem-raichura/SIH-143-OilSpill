@@ -7,6 +7,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ROLE_TEXT } from "../auth/accounts";
 import { canSeeShips, useSession } from "../auth/session";
+import { SkeletonList } from "../components/loaders";
+import { EASE, m } from "../components/motion";
 import { PageHeader, Tabs, Tip, VerdictChip } from "../components/ui";
 import { fetchJson, useCasesIndex, useShared } from "../data/load";
 import { PLACE, REGION_BOUNDS, REGION_LABEL, type Region } from "../data/places";
@@ -194,7 +196,8 @@ export default function Console() {
             const g = gates[p.entry.id];
             const sat = p.meta.satellite;
             return (
-              <li key={p.entry.id} className={`feed-item${stage === 2 ? " waiting" : ""}${progress - i < 1 ? " fresh" : ""}`}>
+              <m.li key={p.entry.id} layout initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.32, ease: EASE, layout: { duration: 0.32, ease: EASE } }}
+                className={`feed-item${stage === 2 ? " waiting" : ""}${progress - i < 1 ? " fresh" : ""}`}>
                 <div className="feed-top">
                   <span className="num t-label">{fmtUtc(p.entry.t_image)}</span>
                   {stage >= 5 && g && <VerdictChip code={verdictOf.get(p.entry.id)!} />}
@@ -215,10 +218,11 @@ export default function Console() {
                     </Link>
                   )}
                 </div>
-              </li>
+              </m.li>
             );
           })}
-          {!feed.length && <li className="empty" style={{ margin: 16 }}>Waiting for the first pass…</li>}
+          {!passes.length && <li><SkeletonList n={3} tall /></li>}
+          {passes.length > 0 && !feed.length && <li className="empty" style={{ margin: 16 }}>Waiting for the first pass…</li>}
         </ol>
       </aside>
       <section className="console-main">
@@ -229,7 +233,8 @@ export default function Console() {
           ]} />
         </div>
         <div className="console-map">
-          <MapCanvas ref={mapRef} ariaLabel="Map of incoming slicks" layers={layers} fit={{ bounds: REGION_BOUNDS[region], key: `${region}:${fitN}`, padding: 32 }} onViewport={setVp}>
+          <MapCanvas ref={mapRef} ariaLabel="Map of incoming slicks" layers={layers} fit={{ bounds: REGION_BOUNDS[region], key: `${region}:${fitN}`, padding: 32 }} onViewport={setVp}
+            loading={!passes.length} loadingLabel="Loading satellite passes…">
             {advanced && <ChartFrame vp={vp} bottomInset={30} />}
             <div className="map-tl"><BasemapSwitcher /></div>
             <div className="map-bl">

@@ -1,5 +1,6 @@
 import { ChevronDown, ListTree } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { Collapse } from "../components/motion";
 import { useMedia } from "../lib/useMedia";
 
 export interface LegendItem {
@@ -28,7 +29,7 @@ export default function MapLegend({ groups, defaultOpen }: { groups: LegendGroup
         <span>Legend</span>
         <ChevronDown size={14} className="legend-caret" aria-hidden="true" />
       </button>
-      {open && (
+      <Collapse open={open} className="legend-collapse">
         <div className="legend-body">
           {!shown.length && <p className="t-label">No layers are on.</p>}
           {shown.map((g) => (
@@ -45,7 +46,7 @@ export default function MapLegend({ groups, defaultOpen }: { groups: LegendGroup
             </div>
           ))}
         </div>
-      )}
+      </Collapse>
     </section>
   );
 }

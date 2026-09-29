@@ -20,6 +20,10 @@ export interface BasemapDef {
   hint: string;
   /** Tile URL template; null for the offline chart. */
   url: string | null;
+  /**
+   * Deepest zoom that has real tiles everywhere we look (open sea included). Beyond it the map stretches these tiles
+   * instead of requesting deeper ones, which Esri serves as "Map data not yet available" placeholders over the ocean.
+   */
   maxZoom: number;
   attribution: string | null;
   /** Colours for the small preview tile in the switcher: [sea, land]. */
@@ -29,11 +33,11 @@ export interface BasemapDef {
 export const BASEMAPS: BasemapDef[] = [
   { id: "chart", label: "Chart", hint: "Drawn from coastline data; works without internet", url: null, maxZoom: 16, attribution: null, preview: ["#D9E9F4", "#EFEBE0"] },
   {
-    id: "ocean", label: "Ocean", hint: "Bathymetry and coastlines", url: `${ESRI}/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}`, maxZoom: 13,
+    id: "ocean", label: "Ocean", hint: "Bathymetry and coastlines", url: `${ESRI}/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}`, maxZoom: 10,
     attribution: "Basemap: Esri, GEBCO, NOAA, National Geographic, Garmin, HERE and other contributors", preview: ["#9FC8E3", "#E6E0CC"],
   },
   {
-    id: "satellite", label: "Satellite", hint: "Optical imagery", url: `${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, maxZoom: 18,
+    id: "satellite", label: "Satellite", hint: "Optical imagery", url: `${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, maxZoom: 13,
     attribution: "Imagery: Esri, Maxar, Earthstar Geographics and the GIS user community", preview: ["#1B3A57", "#5B6B3A"],
   },
   {

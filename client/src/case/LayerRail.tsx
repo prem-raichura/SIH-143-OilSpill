@@ -1,6 +1,8 @@
 import * as Popover from "@radix-ui/react-popover";
 import * as Switch from "@radix-ui/react-switch";
 import { ChevronDown, Layers, Lock, RotateCcw, SlidersHorizontal, X, ZoomIn } from "lucide-react";
+import { useState } from "react";
+import { Collapse, m, slideFromLeft } from "../components/motion";
 import { Tip } from "../components/ui";
 import { Swatch } from "../map/Swatch";
 import { useMapPrefs } from "../store/mapPrefs";
@@ -19,8 +21,10 @@ export default function LayerRail() {
   const shown = LAYERS.filter((l) => (advanced || !ADVANCED_ONLY.includes(l.id)) && !(l.ships && c.analyst));
   const groups = [...new Set(shown.map((l) => l.group))];
   const hasSar = Boolean(c.bundle.meta.satellite);
+  // Groups start open when one of their layers is on; the user's own open/close choice sticks.
+  const [openG, setOpenG] = useState<Record<string, boolean>>({});
   return (
-    <aside className="rail" aria-label="Map layers">
+    <m.aside className="rail" aria-label="Map layers" {...slideFromLeft}>
       <div className="rail-head">
         <span className="rail-title"><Layers size={16} strokeWidth={1.8} aria-hidden="true" /> Map layers</span>
         <span className="rail-head-btns">
@@ -40,12 +44,14 @@ export default function LayerRail() {
           });
           const nOn = state.filter((x) => x.onNow).length;
           return (
-            <details className="rail-group" key={g} open={nOn > 0}>
-              <summary>
-                <ChevronDown size={14} className="rail-caret" aria-hidden="true" />
+            <div className="rail-group" key={g}>
+              <button type="button" className="rail-group-head" aria-expanded={openG[g] ?? nOn > 0} aria-controls={`rail-${g.replace(/\W+/g, "-")}`}
+                onClick={() => setOpenG((o) => ({ ...o, [g]: !(o[g] ?? nOn > 0) }))}>
+                <ChevronDown size={14} className={`rail-caret caret${openG[g] ?? nOn > 0 ? "" : " closed"}`} aria-hidden="true" />
                 <span>{g}</span>
                 <span className={`rail-count num${nOn ? " on" : ""}`}>{nOn}/{defs.length}</span>
-              </summary>
+              </button>
+              <Collapse open={openG[g] ?? nOn > 0} id={`rail-${g.replace(/\W+/g, "-")}`}>
               {state.map(({ l, lockedShips, unavailable, disabled, onNow }) => (
                 <div key={l.id} className={`layer-row${onNow ? " on" : " off"}${disabled ? " locked" : ""}`}
                   title={lockedShips ? "Ships stay hidden until the oil check is answered" : unavailable ? "No satellite image for this case" : undefined}>
@@ -90,10 +96,11 @@ export default function LayerRail() {
                   )}
                 </div>
               ))}
-            </details>
+              </Collapse>
+            </div>
           );
         })}
       </div>
-    </aside>
+    </m.aside>
   );
 }

@@ -2,6 +2,7 @@ import type { Layer, MapViewState, PickingInfo } from "@deck.gl/core";
 import { MapView, WebMercatorViewport } from "@deck.gl/core";
 import DeckGL, { type DeckGLRef } from "@deck.gl/react";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { MapLoader, MapProgress } from "../components/loaders";
 import type { Bounds } from "../data/types";
 
 export interface MapHandle {
@@ -26,6 +27,9 @@ export interface MapCanvasProps {
   children?: ReactNode;
   cursor?: string;
   ariaLabel: string;
+  /** The page is still fetching what this map shows: cover it with a loader. */
+  loading?: boolean;
+  loadingLabel?: string;
 }
 
 const MAP_VIEW = new MapView({ repeat: false });
@@ -42,9 +46,26 @@ function sidePadding(p: FitPadding | undefined, width: number, height: number) {
 }
 
 export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanvas(
-  { layers, fit, onHover, onClick, onViewport, pitch = 0, children, cursor, ariaLabel },
+  { layers, fit, onHover, onClick, onViewport, pitch = 0, children, cursor, ariaLabel, loading = false, loadingLabel },
   ref,
 ) {
+  // Rendering state: `ready` = every layer (basemap tiles included) has loaded for the current view.
+  // The loader covers the map until the first time it is ready; later tile loads only show a thin bar.
+  const [ready, setReady] = useState(false);
+  const [firstReady, setFirstReady] = useState(false);
+  const liveLayers = useRef<Layer[]>([]);
+  const onAfterRender = useCallback(() => {
+    const ls = liveLayers.current;
+    const ok = ls.length > 0 && ls.every((l) => l.isLoaded);
+    setReady((r) => (r === ok ? r : ok));
+    if (ok) setFirstReady(true);
+  }, []);
+  // Never leave a map covered: after 10 s show it anyway (a slow tile server should not block the data layers).
+  useEffect(() => {
+    if (firstReady || loading) return;
+    const t = window.setTimeout(() => setFirstReady(true), 10_000);
+    return () => window.clearTimeout(t);
+  }, [firstReady, loading]);
   const wrap = useRef<HTMLDivElement>(null);
   const deckRef = useRef<DeckGLRef>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
@@ -191,7 +212,8 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
           viewState={viewState}
           onViewStateChange={onViewStateChange as never}
           controller={{ doubleClickZoom: true, touchRotate: true, dragRotate: true, keyboard: false }}
-          layers={layers.filter(Boolean) as Layer[]}
+          layers={(liveLayers.current = layers.filter(Boolean) as Layer[])}
+          onAfterRender={onAfterRender}
           onHover={onHover}
           onClick={onClick}
           getCursor={({ isDragging, isHovering }) => (isDragging ? "grabbing" : isHovering ? "pointer" : cursor ?? "grab")}
@@ -201,6 +223,8 @@ export const MapCanvas = forwardRef<MapHandle, MapCanvasProps>(function MapCanva
         />
       )}
       {children}
+      <MapProgress show={firstReady && !loading && !ready} />
+      <MapLoader show={loading || !firstReady} label={loadingLabel} />
     </div>
   );
 });

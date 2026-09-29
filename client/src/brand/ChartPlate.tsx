@@ -2,6 +2,7 @@
 // drawn as a night nautical chart. Coast, slick, where the oil came from, where it will drift, and the track of the
 // top candidate ship. Built from the same case files the app uses, so it stays true to the data.
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { LogoLoader } from "../components/loaders";
 import { fetchJson, useLand } from "../data/load";
 import type { CorridorProps, FeatureCollection, ForecastProps, Ledger, LonLat, Meta, PolygonGeometry, TrackProps } from "../data/types";
 import { bearingDeg, geometryRings } from "../lib/geo";
@@ -227,6 +228,11 @@ export default function ChartPlate({ framing, animate = false }: { framing: "her
             </g>
           )}
         </svg>
+      )}
+      {!drawn && (
+        <div className="chart-plate-loading">
+          <LogoLoader size="sm" label="Loading chart" />
+        </div>
       )}
       <div className="chart-plate-frame" aria-hidden="true" />
     </div>

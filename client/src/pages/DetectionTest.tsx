@@ -1,7 +1,8 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { CheckCircle2, HelpCircle, ScanSearch, X, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
-import { ErrorNote, Loading, PageHeader, Tabs } from "../components/ui";
+import { PageSkeleton } from "../components/loaders";
+import { ErrorNote, PageHeader, Tabs } from "../components/ui";
 import { dataUrl, useGallery } from "../data/load";
 import type { GalleryItem } from "../data/types";
 import { useReview, type HumanLabel } from "../store/review";
@@ -31,7 +32,7 @@ export default function DetectionTest() {
   }, [feedback]);
 
   if (error) return <div className="page-pad"><ErrorNote error={error} /></div>;
-  if (loading || !data) return <div className="page-pad"><Loading /></div>;
+  if (loading || !data) return <PageSkeleton variant="tiles" />;
   const items = data.items.filter((i) => filter === "all" || i.class === filter);
   const answered = data.items.filter((i) => answers.has(i.id));
   const agreed = answered.filter((i) => agrees(answers.get(i.id)!, i.class) === true).length;
@@ -57,8 +58,8 @@ export default function DetectionTest() {
           const a = answers.get(it.id);
           const hide = blindMode && !a;
           return (
-            <button key={it.id} type="button" className="tile" onClick={() => setOpen(it)} aria-label={`Open tile ${it.id}`}>
-              <img src={dataUrl(`shared/gallery/${it.image}`)} alt="" loading="lazy" />
+            <button key={it.id} type="button" className="tile skeleton" onClick={() => setOpen(it)} aria-label={`Open tile ${it.id}`}>
+              <img className="img-fade" src={dataUrl(`shared/gallery/${it.image}`)} alt="" loading="lazy" onLoad={(e) => e.currentTarget.classList.add("loaded")} />
               {showMask && !hide && it.class !== "clean" && <img className="tile-mask" src={dataUrl(`shared/gallery/${it.mask}`)} alt="" loading="lazy" />}
               <span className="tile-cap">
                 {hide ? "Not reviewed" : CLASS_TEXT[it.class]}

@@ -19,7 +19,7 @@ const NAV: { to: string; label: string; icon: LucideIcon; end?: boolean; ships?:
 
 export function Mark() {
   return (
-    <img src="/logo/final_logo.png" width="22" height="22" alt="" aria-hidden="true" />
+    <img src={`${import.meta.env.BASE_URL}logo/logo-96.png`} width="22" height="22" alt="" aria-hidden="true" />
   );
 }
 

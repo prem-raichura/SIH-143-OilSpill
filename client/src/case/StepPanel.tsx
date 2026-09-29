@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, PanelRightClose, PanelRightOpen } from "lucide-react";
 import type { ReactNode } from "react";
+import { AnimatePresence, DUR, EASE, m, pop, SPRING } from "../components/motion";
 import { NARROW, useMedia } from "../lib/useMedia";
 import { STEPS, useWorkspace, type Step } from "../store/workspace";
 import { useCase, type CaseDerived } from "./useCase";
@@ -68,13 +69,29 @@ export default function StepPanel() {
   const toggle = () => set({ panelOpen: !panelOpen });
   return (
     <>
-      {!narrow && !panelOpen && (
-        <button type="button" className="panel-reopen" onClick={toggle} aria-controls="step-panel" aria-expanded={false}>
-          <PanelRightOpen size={16} aria-hidden="true" />
-          {title}
-        </button>
-      )}
-      <aside className={`panel${panelOpen ? " open" : ""}`} id="step-panel" tabIndex={-1} aria-label="Step details" hidden={!narrow && !panelOpen}>
+      <AnimatePresence>
+        {!narrow && !panelOpen && (
+          <m.button key="reopen" type="button" className="panel-reopen" onClick={toggle} aria-controls="step-panel" aria-expanded={false}
+            {...pop} transition={{ duration: DUR.base, ease: EASE, delay: 0.12 }}>
+            <PanelRightOpen size={16} aria-hidden="true" />
+            {title}
+          </m.button>
+        )}
+      </AnimatePresence>
+      {/* Wide screens: slides out to the right and stays mounted (keeps what you typed); narrow: a bottom sheet. */}
+      <m.aside
+        className={`panel${panelOpen ? " open" : ""}`}
+        id="step-panel"
+        tabIndex={-1}
+        aria-label="Step details"
+        initial={false}
+        animate={narrow ? "sheet" : panelOpen ? "open" : "closed"}
+        variants={{
+          open: { display: "flex", opacity: 1, x: 0, transition: SPRING },
+          closed: { opacity: 0, x: 36, transition: { duration: DUR.base, ease: EASE }, transitionEnd: { display: "none" } },
+          sheet: { display: "flex", opacity: 1, x: 0 },
+        }}
+      >
         <button type="button" className="panel-bar" onClick={toggle} aria-expanded={panelOpen} aria-label={panelOpen ? "Hide step details" : "Show step details"}>
           {narrow && <span className="panel-grip" aria-hidden="true" />}
           {title}
@@ -82,9 +99,9 @@ export default function StepPanel() {
             {narrow ? (panelOpen ? <ChevronDown size={18} /> : <ChevronUp size={18} />) : <PanelRightClose size={16} />}
           </span>
         </button>
-        <div className="panel-scroll" key={step} hidden={!panelOpen}>
+        <m.div className="panel-scroll" key={step} hidden={!panelOpen} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: DUR.base, ease: EASE }}>
           {BODY[step]()}
-        </div>
+        </m.div>
         <div className="panel-foot" hidden={!panelOpen}>
           {prev ? (
             <button type="button" className="btn btn-quiet" onClick={() => setStep(prev.id)}>
@@ -97,7 +114,7 @@ export default function StepPanel() {
             </button>
           )}
         </div>
-      </aside>
+      </m.aside>
     </>
   );
 }

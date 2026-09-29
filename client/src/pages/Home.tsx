@@ -3,7 +3,9 @@ import { GeoJsonLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
 import { ChevronRight, Map as MapIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ErrorNote, Loading, PageHeader, StatCard, Tabs, VerdictChip } from "../components/ui";
+import { SkeletonList } from "../components/loaders";
+import { AnimatePresence, listItem, listStagger, m, pop } from "../components/motion";
+import { ErrorNote, PageHeader, StatCard, Tabs, VerdictChip } from "../components/ui";
 import { dataUrl, fetchJson, useCasesIndex, useShared } from "../data/load";
 import { PLACE, REGION_BOUNDS, REGION_LABEL, type Region } from "../data/places";
 import type { CaseIndexEntry, FeatureCollection, Meta, PolygonGeometry, VerdictCode } from "../data/types";
@@ -173,16 +175,15 @@ export default function Home() {
             ]}
           />
         </div>
-        <div className="home-cases" role="list">
+        <m.div className="home-cases" role="list" key={region} variants={listStagger} initial="hidden" animate="show">
           {index.error && <div style={{ padding: 16 }}><ErrorNote error={index.error} /></div>}
-          {index.loading && <div style={{ padding: 16 }}><Loading /></div>}
+          {index.loading && <SkeletonList n={4} />}
           {cases.map((c) => {
-            const m = geos[c.id]?.meta.slick.measures;
+            const ms = geos[c.id]?.meta.slick.measures;
             return (
+              <m.div key={c.id} role="listitem" variants={listItem}>
               <Link
-                key={c.id}
                 to={`/app/case/${c.id}`}
-                role="listitem"
                 className={`case-row${hot === c.id ? " hot" : ""}`}
                 data-v={c.verdict.code}
                 onMouseEnter={() => setHot(c.id)}
@@ -196,13 +197,14 @@ export default function Home() {
                 <span className="place">{PLACE[c.id] ?? c.id}</span>
                 <span className="meta">
                   {fmtUtc(c.t_image)}
-                  {m ? `, ${m.length_km.toFixed(0)} km slick` : ""}
+                  {ms ? `, ${ms.length_km.toFixed(0)} km slick` : ""}
                   <ChevronRight size={16} className="case-go" aria-hidden="true" />
                 </span>
               </Link>
+              </m.div>
             );
           })}
-        </div>
+        </m.div>
       </aside>
       <section className="home-map" aria-label="Case map">
         <MapCanvas
@@ -215,6 +217,8 @@ export default function Home() {
             if (info.layer?.id === "home-markers" && info.object) navigate(`/app/case/${(info.object as CaseIndexEntry).id}`);
           }}
           onViewport={setVp}
+          loading={!index.data || Object.keys(geos).length === 0}
+          loadingLabel="Loading cases…"
         >
           {advanced && <ChartFrame vp={vp} bottomInset={30} />}
           <div className="map-tl"><BasemapSwitcher /></div>
@@ -252,8 +256,9 @@ export default function Home() {
             {advanced && <span className="status-zoom num">z {vp ? vp.zoom.toFixed(1) : "–"}</span>}
             {attribution && <span className="attribution">{attribution}</span>}
           </div>
+          <AnimatePresence>
           {hotCase && hoverXY && (
-            <div className="hover-card" style={{ left: Math.max(8, Math.min(hoverXY.x + 16, W - 250)), top: Math.max(8, Math.min(hoverXY.y - 170, H - 250)) }}>
+            <m.div key="hover-card" {...pop} className="hover-card" style={{ left: Math.max(8, Math.min(hoverXY.x + 16, W - 250)), top: Math.max(8, Math.min(hoverXY.y - 170, H - 250)) }}>
               {hotCase.entry.has_sar_image ? (
                 <img src={dataUrl(`${hotCase.entry.path}sar_quicklook.png`)} alt="" />
               ) : (
@@ -266,8 +271,9 @@ export default function Home() {
                 <span className="place" style={{ fontSize: 17 }}>{PLACE[hotCase.entry.id]}</span>
                 <VerdictChip code={hotCase.entry.verdict.code} />
               </div>
-            </div>
+            </m.div>
           )}
+          </AnimatePresence>
         </MapCanvas>
       </section>
     </div>

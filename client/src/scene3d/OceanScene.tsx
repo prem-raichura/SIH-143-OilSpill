@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useCase, type CaseDerived } from "../case/useCase";
+import { CollapsiblePanel } from "../components/motion";
 import { Segmented } from "../components/ui";
 import { PALETTES } from "../design/palette";
 import { PLACE } from "../data/places";
@@ -410,8 +411,7 @@ export default function OceanScene() {
         <span className="num">{fmtRel(h)}</span>
       </div>
 
-      <details className="scene-hud scene-hud-tr" open>
-        <summary><b>View controls</b></summary>
+      <CollapsiblePanel className="scene-hud scene-hud-tr" title="View controls">
         <Segmented<Preset>
           label="Camera"
           size="sm"
@@ -447,7 +447,7 @@ export default function OceanScene() {
             <input type="range" min={0} max={15} step={0.5} value={opts.sarWind} onChange={(e) => set({ sarWind: Number(e.target.value) })} />
           </label>
         )}
-      </details>
+      </CollapsiblePanel>
 
       {hyp && c.shipsUnlocked && (
         <div className="scene-banner" role="note">

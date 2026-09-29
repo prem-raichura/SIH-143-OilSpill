@@ -1,0 +1,344 @@
+/* Page wrapper that fades in on each route */
+.route-fade {
+  height: 100%;
+  min-height: 0;
+}
+
+/* ---------- Loaders ---------- */
+/* Logo loader: the OILENS badge stays still; a ring with a satellite dot orbits it; a soft halo pulses. */
+.logo-loader {
+  --ll: 112px;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  color: var(--ink-2);
+}
+.logo-loader.ll-md {
+  --ll: 76px;
+  gap: 10px;
+}
+.logo-loader.ll-sm {
+  --ll: 40px;
+}
+.ll-mark {
+  position: relative;
+  width: calc(var(--ll) * 1.36);
+  height: calc(var(--ll) * 1.36);
+  display: grid;
+  place-items: center;
+}
+.ll-mark img {
+  position: relative;
+  width: var(--ll);
+  height: var(--ll);
+  border-radius: 50%;
+  object-fit: contain;
+  user-select: none;
+  box-shadow: 0 6px 22px rgba(11, 95, 165, 0.18);
+}
+.ll-halo {
+  position: absolute;
+  width: var(--ll);
+  height: var(--ll);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 30%, transparent) 0%, transparent 70%);
+  animation: ll-pulse 2.2s ease-in-out infinite;
+}
+.ll-orbit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  animation: ll-spin 1.6s linear infinite;
+}
+.ll-track {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent) 16%, transparent);
+  stroke-width: 1.6;
+}
+.ll-arc {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 22 78;
+}
+.ll-sat {
+  fill: var(--future);
+  stroke: var(--panel);
+  stroke-width: 1.2;
+}
+.ll-label {
+  font-size: 13.5px;
+  font-weight: 560;
+  letter-spacing: 0.01em;
+}
+.logo-loader.ll-md .ll-label {
+  font-size: 13px;
+}
+@keyframes ll-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ll-pulse {
+  0%,
+  100% {
+    transform: scale(1.02);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+.page-loader {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 320px;
+}
+.page-loader.fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg);
+}
+
+/* Map loader: covers the map area until data and first tiles are in. */
+.map-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: grid;
+  place-items: center;
+  background:
+    linear-gradient(110deg, transparent 30%, color-mix(in srgb, var(--panel) 35%, transparent) 50%, transparent 70%) 0 0 / 250% 100%,
+    repeating-linear-gradient(0deg, transparent 0 63px, color-mix(in srgb, var(--grid) 70%, transparent) 63px 64px),
+    repeating-linear-gradient(90deg, transparent 0 63px, color-mix(in srgb, var(--grid) 70%, transparent) 63px 64px),
+    var(--sea);
+  animation: map-sheen 2.4s linear infinite;
+}
+.map-loader .logo-loader {
+  padding: 18px 22px 14px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+}
+@keyframes map-sheen {
+  to {
+    background-position: -250% 0, 0 0, 0 0, 0 0;
+  }
+}
+
+/* Thin progress bar along the top of a map while tiles load. */
+.map-progress {
+  position: absolute;
+  z-index: 8;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  pointer-events: none;
+}
+.map-progress span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--teal));
+  animation: map-progress 1.1s var(--ease) infinite;
+}
+@keyframes map-progress {
+  from {
+    left: -35%;
+  }
+  to {
+    left: 100%;
+  }
+}
+
+/* Small spinner on the landing / sign-in chart while its data loads. */
+.chart-plate-loading {
+  position: absolute;
+  z-index: 1;
+  left: 72%;
+  top: 44%;
+  transform: translate(-50%, -50%);
+}
+.chart-plate-panel .chart-plate-loading {
+  left: 50%;
+}
+.chart-plate-loading .ll-mark img {
+  box-shadow: none;
+}
+
+/* ---------- Skeletons ---------- */
+.skel-text {
+  display: grid;
+  gap: 10px;
+}
+.skel-list {
+  display: grid;
+  gap: 10px;
+}
+.skel-card {
+  display: grid;
+  gap: 9px;
+  padding: 14px 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-sm);
+}
+.skel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.skel-page {
+  display: grid;
+  gap: 18px;
+}
+.skel-grid {
+  display: grid;
+  gap: 12px;
+}
+
+/* Images fade in once loaded over a shimmering placeholder */
+.img-fade {
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+.img-fade.loaded {
+  opacity: 1;
+}
+
+/* ---------- Radix popovers, tooltips and dialogs: open and close from the trigger side ---------- */
+.menu-pop[data-state="open"],
+.tooltip[data-state="delayed-open"],
+.tooltip[data-state="instant-open"] {
+  animation: pop-open 160ms var(--ease);
+}
+.menu-pop[data-state="closed"],
+.tooltip[data-state="closed"] {
+  animation: pop-close 120ms ease-in forwards;
+}
+.menu-pop {
+  transform-origin: var(--radix-popover-content-transform-origin);
+}
+.tooltip {
+  transform-origin: var(--radix-tooltip-content-transform-origin);
+}
+@keyframes pop-open {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-2px);
+  }
+}
+@keyframes pop-close {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+.dialog-overlay[data-state="open"] {
+  animation: fade-in 180ms ease;
+}
+.dialog-overlay[data-state="closed"] {
+  animation: fade-out 140ms ease forwards;
+}
+.dialog[data-state="open"] {
+  animation: dialog-open 220ms var(--ease);
+}
+.dialog[data-state="closed"] {
+  animation: dialog-close 140ms ease-in forwards;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes dialog-open {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.97);
+  }
+}
+@keyframes dialog-close {
+  to {
+    opacity: 0;
+    transform: translate(-50%, -49%) scale(0.98);
+  }
+}
+
+/* Map corners glide when a panel opens or closes beside them. */
+.map-tl,
+.map-tr,
+.map-bl,
+.map-br,
+.map-statusbar {
+  transition: left 280ms var(--ease), right 280ms var(--ease), bottom 280ms var(--ease), top 280ms var(--ease), padding 280ms var(--ease);
+}
+
+/* Accordion caret */
+.caret {
+  transition: transform 180ms var(--ease);
+}
+.caret.closed {
+  transform: rotate(-90deg);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .ll-orbit,
+  .ll-halo,
+  .map-loader,
+  .map-progress span {
+    animation: none;
+  }
+  .ll-arc {
+    stroke-dasharray: none;
+    stroke: color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+  .map-progress span {
+    left: 0;
+    width: 100%;
+    opacity: 0.6;
+  }
+  .menu-pop,
+  .tooltip,
+  .dialog,
+  .dialog-overlay {
+    animation-duration: 1ms !important;
+  }
+  .map-tl,
+  .map-tr,
+  .map-bl,
+  .map-br,
+  .map-statusbar,
+  .caret {
+    transition: none;
+  }
+}
+
+/* Radar tiles load over a dark shimmer (they are dark images) */
+.tile.skeleton {
+  background: linear-gradient(90deg, #0b1622, #1e3a50, #0b1622);
+  background-size: 200% 100%;
+  border-radius: var(--r-btn);
+}

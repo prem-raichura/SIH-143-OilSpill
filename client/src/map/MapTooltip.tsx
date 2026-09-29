@@ -18,7 +18,7 @@ export default function MapTooltip({ x, y, width, height, className = "map-toolt
       style={{
         left: x,
         top: y,
-        transform: `translate(${flipX ? "calc(-100% - 12px)" : "12px"}, ${flipY ? "calc(-100% - 12px)" : "12px"})`,
+        translate: `${flipX ? "calc(-100% - 12px)" : "12px"} ${flipY ? "calc(-100% - 12px)" : "12px"}`,
       }}
     >
       {children}

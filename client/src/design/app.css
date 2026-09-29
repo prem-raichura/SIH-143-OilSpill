@@ -595,6 +595,17 @@
 }
 .step-btn[aria-current="step"] {
   color: var(--accent);
+}
+/* The active-step highlight slides between steps (motion layoutId). */
+.step-btn {
+  position: relative;
+  isolation: isolate;
+}
+.step-active-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--r-pill);
   background: var(--accent-soft);
 }
 .step-btn[aria-current="step"] .n {
@@ -667,13 +678,6 @@
   border: 1px solid var(--line);
   border-radius: 12px;
   box-shadow: var(--shadow);
-  animation: drawer-in 180ms var(--ease);
-}
-@keyframes drawer-in {
-  from {
-    opacity: 0;
-    transform: translateX(-12px);
-  }
 }
 .rail-head {
   display: flex;
@@ -714,27 +718,23 @@
 .rail-group:last-child {
   border-bottom: 0;
 }
-.rail-group summary {
+.rail-group-head {
   display: flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
   padding: 10px 12px 6px 10px;
+  border: 0;
+  background: transparent;
   font-size: 13px;
   font-weight: 640;
   color: var(--ink);
+  text-align: left;
   cursor: pointer;
-  list-style: none;
   user-select: none;
 }
-.rail-group summary::-webkit-details-marker {
-  display: none;
-}
 .rail-caret {
-  transition: transform 150ms var(--ease);
   color: var(--ink-3);
-}
-.rail-group:not([open]) .rail-caret {
-  transform: rotate(-90deg);
 }
 .rail-count {
   margin-left: auto;
@@ -964,7 +964,14 @@
   font-size: 12.5px;
   line-height: 17px;
   max-width: 280px;
-  transform: translate(12px, 12px);
+  translate: 12px 12px;
+  animation: tip-in 120ms ease;
+}
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
 }
 .map-tooltip b {
   font-weight: 650;
@@ -979,7 +986,7 @@
   position: absolute;
   top: 12px;
   left: calc((100% + var(--map-inset-left, 0px) - var(--map-inset-right, 0px)) / 2);
-  transform: translateX(-50%);
+  translate: -50% 0;
   z-index: 9;
   background: var(--panel);
   border: 1px solid var(--accent);
@@ -1779,6 +1786,10 @@ input[type="range"] {
   border-left: 3px solid var(--accent);
   border-radius: var(--r-btn);
   box-shadow: var(--shadow);
+}
+.coach-body {
+  display: grid;
+  gap: 8px;
 }
 .coach header,
 .coach footer {

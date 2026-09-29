@@ -2,6 +2,7 @@ import * as Popover from "@radix-ui/react-popover";
 import * as Switch from "@radix-ui/react-switch";
 import { Ellipsis, Maximize, Minus, Plus } from "lucide-react";
 import type { ReactNode } from "react";
+import { AnimatePresence, m, pop } from "../components/motion";
 import { Tip } from "../components/ui";
 import { NARROW, useMedia } from "../lib/useMedia";
 import { useMapPrefs } from "../store/mapPrefs";
@@ -39,8 +40,9 @@ export default function MapControls({
   const narrow = useMedia(NARROW);
   return (
     <div className="map-ctrls">
+      <AnimatePresence>
       {advanced && !narrow && tools.length > 0 && (
-        <div className="ctrl-group" aria-label="Advanced map tools" role="group">
+        <m.div key="adv" className="ctrl-group" aria-label="Advanced map tools" role="group" {...pop} style={{ transformOrigin: "bottom center" }}>
           {tools.map((t) => (
             <Tip key={t.key} content={t.disabled && t.disabledReason ? t.disabledReason : t.label} side="left">
               <button type="button" className="icon-btn" aria-label={t.label} aria-pressed={t.pressed} disabled={t.disabled} onClick={t.onClick}>
@@ -48,8 +50,9 @@ export default function MapControls({
               </button>
             </Tip>
           ))}
-        </div>
+        </m.div>
       )}
+      </AnimatePresence>
       <div className="ctrl-group" role="group" aria-label="Map view">
         <Tip content="Zoom in" side="left">
           <button type="button" className="icon-btn" aria-label="Zoom in" onClick={onZoomIn}><Plus size={18} /></button>

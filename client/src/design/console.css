@@ -116,7 +116,6 @@
 @keyframes arrive {
   from {
     background: var(--accent-soft);
-    transform: translateY(-4px);
   }
 }
 .feed-item.waiting {
@@ -312,36 +311,31 @@
   overflow-y: auto;
 }
 /* Collapsible overlay panels (3D scene controls, space-time cube notes) */
-.scene-hud-tr > summary,
-.cube-panel > summary {
+.hud-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  cursor: pointer;
-  list-style: none;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
   font-size: 13px;
+  text-align: left;
+  cursor: pointer;
 }
-.scene-hud-tr > summary::-webkit-details-marker,
-.cube-panel > summary::-webkit-details-marker {
-  display: none;
+.hud-head .caret {
+  color: var(--ink-2);
 }
-.scene-hud-tr > summary::after,
-.cube-panel > summary::after {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-right: 1.5px solid var(--ink-2);
-  border-bottom: 1.5px solid var(--ink-2);
-  transform: rotate(45deg) translateY(-2px);
-  transition: transform 150ms var(--ease);
+.hud-body {
+  display: grid;
+  gap: 10px;
 }
-.scene-hud-tr:not([open]) > summary::after,
-.cube-panel:not([open]) > summary::after {
-  transform: rotate(-45deg);
+.cube-panel .hud-body {
+  gap: 8px;
 }
-.scene-hud-tr:not([open]),
-.cube-panel:not([open]) {
+.hud.collapsed {
   width: auto;
 }
 .scene-hud .segmented {

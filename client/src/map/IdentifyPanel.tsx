@@ -2,6 +2,7 @@ import { Info, LocateFixed, X } from "lucide-react";
 import { useEffect } from "react";
 import type { LonLat } from "../data/types";
 import { fmtLonLat } from "../lib/geo";
+import { m, pop } from "../components/motion";
 
 export interface Identified {
   title: string;
@@ -20,7 +21,7 @@ export default function IdentifyPanel({ item, onClose, onZoom, decimal }: { item
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
   return (
-    <section className="identify" aria-label={`Details: ${item.title}`}>
+    <m.section className="identify" aria-label={`Details: ${item.title}`} {...pop} style={{ transformOrigin: "top right" }}>
       <header>
         <span className="identify-icon" aria-hidden="true"><Info size={15} strokeWidth={2} /></span>
         <div className="identify-title">
@@ -48,6 +49,6 @@ export default function IdentifyPanel({ item, onClose, onZoom, decimal }: { item
           <LocateFixed size={14} /> Zoom to
         </button>
       )}
-    </section>
+    </m.section>
   );
 }

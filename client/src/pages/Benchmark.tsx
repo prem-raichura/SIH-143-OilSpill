@@ -1,7 +1,8 @@
 import { BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { CountBars, DotCIRows, TradeoffLines } from "../charts/charts";
-import { ErrorNote, Loading, PageHeader, Tabs } from "../components/ui";
+import { PageSkeleton } from "../components/loaders";
+import { ErrorNote, PageHeader, Tabs } from "../components/ui";
 import { useBenchmark } from "../data/load";
 import type { BenchmarkSetA, BenchmarkSetB } from "../data/types";
 import { VERDICT_SHORT } from "../lib/verdict";
@@ -13,7 +14,7 @@ export default function Benchmark() {
   const [split, setSplit] = useState<"held_out" | "tuning">("held_out");
   const [tables, setTables] = useState(false);
   if (error) return <div className="page-pad"><ErrorNote error={error} /></div>;
-  if (loading || !b) return <div className="page-pad"><Loading /></div>;
+  if (loading || !b) return <PageSkeleton variant="cards" />;
   const A: BenchmarkSetA = b[split].set_A;
   const B: BenchmarkSetB = b[split].set_B;
   const cmp = b.comparison_methods_held_out;

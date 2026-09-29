@@ -6,7 +6,9 @@ import LayerRail from "../case/LayerRail";
 import StepPanel, { stepAllowed } from "../case/StepPanel";
 import TimelineDock from "../case/TimelineDock";
 import { CaseCtx, useCaseDerived } from "../case/useCase";
-import { ErrorNote, Loading, Segmented, Tip, VerdictChip } from "../components/ui";
+import { MapLoader, SkeletonBlock } from "../components/loaders";
+import { AnimatePresence, m } from "../components/motion";
+import { ErrorNote, Segmented, Tip, VerdictChip } from "../components/ui";
 import { useCaseBundle } from "../data/load";
 import { PLACE } from "../data/places";
 import { fmtUtc } from "../lib/time";
@@ -56,7 +58,7 @@ export default function CasePage() {
   useEffect(() => () => useClock.getState().pause(), []);
 
   if (bundle.error) return <div className="page-pad"><ErrorNote error={bundle.error} /></div>;
-  if (!c) return <div className="page-pad"><Loading lines={6} /></div>;
+  if (!c) return <CaseLoading />;
 
   const { entry } = c.bundle;
   const railShown = ws.view === "map" && ws.railOpen;
@@ -108,6 +110,7 @@ export default function CasePage() {
               const btn = (
                 <button key={s.id} type="button" className={`step-btn${done ? " done" : ""}${!allowed.ok ? " locked" : ""}`} aria-current={cur ? "step" : undefined}
                   disabled={!allowed.ok} onClick={() => ws.setStep(s.id)}>
+                  {cur && <m.span layoutId="step-active" className="step-active-bg" transition={{ type: "spring", stiffness: 420, damping: 38 }} aria-hidden="true" />}
                   <span className="n" aria-hidden={done ? true : undefined}>{done ? <Check size={12} strokeWidth={3} /> : !allowed.ok ? <Lock size={11} aria-label="Locked" /> : i + 1}</span>
                   <span className="lbl">{s.label}</span>
                 </button>
@@ -126,16 +129,41 @@ export default function CasePage() {
           <section className="ws-view" id="case-map" aria-label={ws.view === "map" ? "Map" : ws.view === "scene" ? "3D scene" : "Space-time cube"}>
             {ws.view === "map" && <CaseMap />}
             {ws.view !== "map" && (
-              <Suspense fallback={<div className="page-pad"><Loading lines={3} /></div>}>
+              <Suspense fallback={<MapLoader show label={ws.view === "scene" ? "Loading 3D scene…" : "Loading space-time cube…"} />}>
                 {ws.view === "scene" ? <OceanScene /> : <SpaceTimeCube />}
               </Suspense>
             )}
           </section>
-          {railShown && <LayerRail />}
+          <AnimatePresence>{railShown && <LayerRail key="rail" />}</AnimatePresence>
           <StepPanel />
         </div>
         {ws.step !== "oil" && <TimelineDock />}
       </div>
     </CaseCtx.Provider>
+  );
+}
+
+/** The workspace frame while the case files load: header, stepper and timeline placeholders, the map loader in the stage. */
+function CaseLoading() {
+  return (
+    <div className="ws" aria-busy="true">
+      <header className="ws-head">
+        <Link to="/app/cases" className="back"><ChevronLeft size={15} /> Cases</Link>
+        <div className="ws-title">
+          <SkeletonBlock w={220} h={22} />
+          <SkeletonBlock w={52} h={20} />
+        </div>
+      </header>
+      <nav className="stepper" aria-hidden="true">
+        {Array.from({ length: 8 }, (_, i) => <SkeletonBlock key={i} w={88} h={24} r={999} style={{ marginRight: 14 }} />)}
+      </nav>
+      <div className="ws-stage">
+        <MapLoader show label="Loading case…" />
+      </div>
+      <div className="dock" aria-hidden="true">
+        <SkeletonBlock w={120} h={36} r={999} />
+        <SkeletonBlock h={10} />
+      </div>
+    </div>
   );
 }

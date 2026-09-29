@@ -3,7 +3,8 @@ import { useEffect, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useSession } from "../auth/session";
 import { useCaseDerived, type CaseDerived } from "../case/useCase";
-import { ErrorNote, Loading } from "../components/ui";
+import { PageSkeleton, SkeletonBlock } from "../components/loaders";
+import { ErrorNote } from "../components/ui";
 import { useCaseBundle, useLand, type LandFC } from "../data/load";
 import { PLACE } from "../data/places";
 import type { Feature, LonLat, PolygonGeometry } from "../data/types";
@@ -39,6 +40,14 @@ function MiniMap({ c, title, mode = "overview", land }: { c: CaseDerived; title:
   const H = Math.round(aspectHeight(bounds, W, 320, 520));
   const proj = fitProjector(bounds, W, H);
   const d = proj.path;
+  if (!land) {
+    return (
+      <figure className="report-map">
+        <SkeletonBlock h={0} r={6} style={{ aspectRatio: `${W} / ${H}`, height: "auto" }} />
+        <figcaption>{title}</figcaption>
+      </figure>
+    );
+  }
   const coast = landPath(land, proj);
   const bar = scaleBar(proj, 130);
   const captions: Record<MapMode, string> = {
@@ -103,7 +112,7 @@ export default function Report() {
   }, [id]);
 
   if (bundle.error) return <div className="page-pad"><ErrorNote error={bundle.error} /></div>;
-  if (!c) return <div className="page-pad"><Loading lines={6} /></div>;
+  if (!c) return <PageSkeleton variant="report" />;
   const { meta, ledger, entry } = c.bundle;
   const m = meta.slick.measures;
   const v = c.verdict;

@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="OILENS: oil spill detection, drift reconstruction and vessel attribution from satellite radar, AIS and ocean models." />
     <title>OILENS</title>
-    <link rel="icon" type="image/png" href="/logo/final_logo.png" />
+    <link rel="icon" type="image/png" href="/logo/logo-96.png" />
+    <link rel="preload" as="image" href="/logo/logo-256.png" />
     <script>
       // Apply the saved theme before first paint. Storage can be unavailable; fall back to light (day).
       (function () {
@@ -14,9 +15,35 @@
         document.documentElement.setAttribute("data-theme", t === "night" ? "night" : "day");
       })();
     </script>
+    <style>
+      /* Boot loader: shown until the app script runs (React replaces #root's content). Matches LogoLoader. */
+      html, body { margin: 0; height: 100%; }
+      .boot { position: fixed; inset: 0; display: grid; place-items: center; background: #f3f6f9; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+      [data-theme="night"] .boot { background: #0b1622; }
+      .boot-mark { position: relative; width: 152px; height: 152px; display: grid; place-items: center; }
+      .boot-mark img { position: relative; width: 112px; height: 112px; border-radius: 50%; }
+      .boot-mark svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; animation: boot-spin 1.6s linear infinite; }
+      .boot-halo { position: absolute; width: 112px; height: 112px; border-radius: 50%; background: radial-gradient(circle, rgba(11, 95, 165, 0.3), transparent 70%); animation: boot-pulse 2.2s ease-in-out infinite; }
+      [data-theme="night"] .boot-halo { background: radial-gradient(circle, rgba(59, 154, 245, 0.3), transparent 70%); }
+      @keyframes boot-spin { to { transform: rotate(360deg); } }
+      @keyframes boot-pulse { 0%, 100% { transform: scale(1.02); opacity: 0.55; } 50% { transform: scale(1.3); opacity: 1; } }
+      @media (prefers-reduced-motion: reduce) { .boot-mark svg, .boot-halo { animation: none; } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot" role="status" aria-label="Loading OILENS">
+        <div class="boot-mark">
+          <span class="boot-halo"></span>
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(11,95,165,0.16)" stroke-width="1.6" />
+            <circle cx="50" cy="50" r="46" fill="none" stroke="#0B5FA5" stroke-width="2.2" stroke-linecap="round" pathLength="100" stroke-dasharray="22 78" />
+            <circle cx="50" cy="4" r="3.4" fill="#B86E00" stroke="#fff" stroke-width="1.2" />
+          </svg>
+          <img src="/logo/logo-256.png" alt="" />
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -18,6 +18,7 @@ import MapControls, { type MapTool } from "../map/MapControls";
 import MapLegend, { type LegendGroup } from "../map/MapLegend";
 import { MapCanvas, type FitPadding, type MapHandle } from "../map/MapCanvas";
 import MapTooltip from "../map/MapTooltip";
+import { AnimatePresence, m, slideDown } from "../components/motion";
 import OverviewMap from "../map/OverviewMap";
 import ScaleBar from "../map/ScaleBar";
 import { Swatch } from "../map/Swatch";
@@ -254,7 +255,9 @@ export default function CaseMap() {
           <div className="tooltip-hint">Click for details</div>
         </MapTooltip>
       )}
-      {measureInfo && <div className="map-banner num">{measureInfo} <span className="muted">(Esc to stop)</span></div>}
+      <AnimatePresence>
+        {measureInfo && <m.div key="measure" className="map-banner num" {...slideDown}>{measureInfo} <span className="muted">(Esc to stop)</span></m.div>}
+      </AnimatePresence>
 
       <div className="map-tl">
         <button type="button" className="map-chip layers-chip" aria-pressed={ws.railOpen} onClick={() => ws.set({ railOpen: !ws.railOpen })}>
@@ -273,7 +276,9 @@ export default function CaseMap() {
       </div>
 
       <div className="map-tr">
-        {identified && <IdentifyPanel item={identified} decimal={ws.decimalCoords} onClose={() => setIdentified(null)} onZoom={zoomTo} />}
+        <AnimatePresence mode="wait">
+          {identified && <IdentifyPanel key={`${identified.title}|${identified.subtitle ?? ""}`} item={identified} decimal={ws.decimalCoords} onClose={() => setIdentified(null)} onZoom={zoomTo} />}
+        </AnimatePresence>
       </div>
 
       <div className="map-bl">

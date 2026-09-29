@@ -38,6 +38,7 @@
     "d3-shape": "^3.2.0",
     "idb-keyval": "^6.3.0",
     "lucide-react": "^1.48.0",
+    "motion": "^13.4.6",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4",

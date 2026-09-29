@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { create } from "zustand";
+import { AnimatePresence, DUR, EASE, m, slideUp } from "../components/motion";
 import { useReview } from "../store/review";
 import { useWorkspace, type View } from "../store/workspace";
 
@@ -71,16 +72,19 @@ export default function GuidedTour() {
     return () => window.removeEventListener("keydown", onKey);
   }, [index, stop]);
 
-  if (!s || index == null) return null;
-  const blocked = Boolean(s.needsGate && !gates[s.needsGate]);
+  const blocked = Boolean(s?.needsGate && !gates[s.needsGate]);
   return (
-    <aside className="coach" role="dialog" aria-label="Guided tour" aria-live="polite">
+    <AnimatePresence>
+    {s && index != null && (
+    <m.aside key="coach" className="coach" role="dialog" aria-label="Guided tour" aria-live="polite" {...slideUp}>
       <header>
         <span className="t-label num">Guided tour, {index + 1} of {STOPS.length}</span>
         <button type="button" className="icon-btn" aria-label="End the tour" onClick={stop}><X size={15} /></button>
       </header>
-      <h2 className="t-section">{s.title}</h2>
-      <p>{s.text}</p>
+      <m.div key={index} className="coach-body" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: DUR.base, ease: EASE }}>
+        <h2 className="t-section">{s.title}</h2>
+        <p>{s.text}</p>
+      </m.div>
       <div className="coach-progress" aria-hidden="true">
         {STOPS.map((_, i) => <i key={i} className={i <= index ? "on" : ""} />)}
       </div>
@@ -95,6 +99,8 @@ export default function GuidedTour() {
         )}
       </footer>
       {blocked && <p className="t-label">Waiting for your oil check answer.</p>}
-    </aside>
+    </m.aside>
+    )}
+    </AnimatePresence>
   );
 }

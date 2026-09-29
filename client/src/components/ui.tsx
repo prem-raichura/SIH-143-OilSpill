@@ -2,6 +2,7 @@ import * as RTooltip from "@radix-ui/react-tooltip";
 import { useRef, type KeyboardEvent, type ReactNode } from "react";
 import type { VerdictCode } from "../data/types";
 import { VERDICT_SHORT } from "../lib/verdict";
+import { SkeletonText } from "./loaders";
 
 export function VerdictChip({ code, label }: { code: VerdictCode; label?: string }) {
   return (
@@ -189,9 +190,7 @@ export function KV({ rows }: { rows: [ReactNode, ReactNode][] }) {
 export function Loading({ lines = 4 }: { lines?: number }) {
   return (
     <div className="loading" aria-busy="true" aria-label="Loading">
-      {Array.from({ length: lines }, (_, i) => (
-        <div key={i} className="skeleton" style={{ height: 12, width: `${90 - i * 12}%`, marginBottom: 10 }} />
-      ))}
+      <SkeletonText lines={lines} />
     </div>
   );
 }
